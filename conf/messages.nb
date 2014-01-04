@@ -1,0 +1,9 @@
+home.title=Meldingsbok
+
+entry.new.title=Skriv en melding
+entry.new.date=Dato
+entry.new.text=Melding
+
+# Override default messages
+constraint.required=Obligatorisk felt
+format.date=Dato (format ''{0}'')

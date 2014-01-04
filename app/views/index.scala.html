@@ -3,16 +3,18 @@
 @import helper._
 @import org.joda.time.format.DateTimeFormat
 @import org.joda.time.format.DateTimeFormatter
+@import play.api.i18n.Messages
 
 @main("Mook") {
 
-    <h1>Mook</h1>
+    <h1>@Messages("home.title")</h1>
 
-    <h2>Add a new entry</h2>
+    <h2>@Messages("entry.new.title")</h2>
 
     @form(routes.Application.newEntry) {
-        @inputDate(entryForm("date"))
-        @textarea(entryForm("text"))
+        @inputDate(field = entryForm("date"), '_label -> Messages("entry.new.date"))
+        @textarea(field = entryForm("text"), '_label -> Messages("entry.new.text")
+        )
 
         <input type="submit" value="Create">
     }
