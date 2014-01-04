@@ -5,5 +5,9 @@
 # Home page
 GET     /                           controllers.Application.index
 
+# Entries
+GET     /mook                  controllers.Application.entries
+POST    /mook                  controllers.Application.newEntry
+
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /mook/assets/*file               controllers.Assets.at(path="/public", file)

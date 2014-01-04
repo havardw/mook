@@ -1,7 +1,25 @@
-@(message: String)
+@(entries: List[Entry], entryForm: Form[Entry])
 
-@main("Welcome to Play") {
+@import helper._
 
-    @play20.welcome(message)
+@main("Mook") {
+
+    <h1>Mook</h1>
+
+    <h2>Add a new entry</h2>
+
+    @form(routes.Application.newEntry) {
+        @inputDate(entryForm("date"))
+        @textarea(entryForm("text"))
+
+        <input type="submit" value="Create">
+    }
+
+    @entries.map { entry =>
+        <article>
+            <h2>@entry.date</h2>
+            @entry.text
+        </article>
+    }
 
 }
