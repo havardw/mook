@@ -11,7 +11,7 @@
 
     <h2>@Messages("entry.new.title")</h2>
 
-    @form(routes.Application.newEntry) {
+    @form(routes.Entries.newEntry) {
         @inputDate(field = entryForm("date"), '_label -> Messages("entry.new.date"))
         @textarea(field = entryForm("text"), '_label -> Messages("entry.new.text")
         )
