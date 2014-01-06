@@ -4,6 +4,12 @@ entry.new.title=Skriv en melding
 entry.new.date=Dato
 entry.new.text=Melding
 
+login.title=Log inn
+login.email=E-post
+login.password=Passord
+login.button=Log inn
+login.error=Ugyldig e-post eller passord
+
 # Override default messages
 constraint.required=Obligatorisk felt
 format.date=Dato (format ''{0}'')

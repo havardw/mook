@@ -3,3 +3,9 @@ home.title=Message book
 entry.new.title=Add a new entry
 entry.new.date=Date
 entry.new.text=Message
+
+login.title=Log in
+login.email=E-mail
+login.password=Password
+login.button=Log in
+login.error=Invalid e-mail or password

@@ -5,6 +5,9 @@
 # Home page
 GET     /                           controllers.Application.index
 
+GET     /mook/login                 controllers.Application.login
+POST    /mook/login                 controllers.Application.handleLogin
+
 # Entries
 GET     /mook                  controllers.Entries.entries
 POST    /mook                  controllers.Entries.newEntry
