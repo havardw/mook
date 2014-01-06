@@ -25,7 +25,6 @@ object Application extends Controller {
   }
 
   def handleLogin = Action { implicit request =>
-    val u = User.getAuthenticatedUser("havardw@wigtil.net", "test")
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.login(formWithErrors)),
       user => Redirect(routes.Entries.entries).withSession("username" -> user._1) /* TODO Get use name instead of e-mail. */
