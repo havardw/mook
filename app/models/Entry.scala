@@ -21,7 +21,7 @@ object Entry {
 
 
   def all(): List[Entry] = DB.withConnection { implicit c =>
-    SQL("select * from entry").as(entry *)
+    SQL("select * from entry order by entryDate desc, id desc").as(entry *)
   }
 
   def create(date: LocalDate, text: String) {
