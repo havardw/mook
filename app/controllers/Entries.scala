@@ -4,6 +4,7 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
 import models.{EntryForm, User, Entry}
+import org.joda.time.LocalDate
 
 object Entries extends Controller with Secured {
 
@@ -16,7 +17,7 @@ object Entries extends Controller with Secured {
 
   def entries = IsAuthenticated { email => _ =>
     User.getUserByEmail(email).map { user =>
-      Ok(views.html.index(Entry.all(), entryForm, user))
+      Ok(views.html.index(Entry.all(), entryForm.fill(EntryForm(new LocalDate(), "")), user))
     }.getOrElse(Forbidden)
   }
 

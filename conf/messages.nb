@@ -1,6 +1,7 @@
 home.title=Meldingsbok
 
 entry.new.title=Skriv en melding
+entry.new.placeholder=Skriv en melding
 entry.new.date=Dato
 entry.new.text=Melding
 entry.new.save=Lagre
