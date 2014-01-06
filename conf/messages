@@ -3,6 +3,7 @@ home.title=Message book
 entry.new.title=Add a new entry
 entry.new.date=Date
 entry.new.text=Message
+entry.new.save=Save
 
 login.title=Log in
 login.email=E-mail

@@ -16,7 +16,7 @@
         @textarea(field = entryForm("text"), '_label -> Messages("entry.new.text")
         )
 
-        <input type="submit" value="Create">
+        <input type="submit" value='@Messages("entry.new.save")'>
     }
 
     @entries.map { entry =>

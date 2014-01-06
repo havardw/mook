@@ -3,6 +3,7 @@ home.title=Meldingsbok
 entry.new.title=Skriv en melding
 entry.new.date=Dato
 entry.new.text=Melding
+entry.new.save=Lagre
 
 login.title=Log inn
 login.email=E-post
