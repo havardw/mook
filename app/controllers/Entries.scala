@@ -5,7 +5,7 @@ import play.api.data.Forms._
 import play.api.mvc._
 import models.Entry
 
-object Entries extends Controller {
+object Entries extends Controller with Secured {
 
   val entryForm = Form(
     mapping(
@@ -14,11 +14,11 @@ object Entries extends Controller {
     )(Entry.apply)(Entry.unapply)
   )
 
-  def entries = Action {
+  def entries = IsAuthenticated {  _ => _ =>
     Ok(views.html.index(Entry.all(), entryForm))
   }
 
-  def newEntry = Action { implicit request =>
+  def newEntry = IsAuthenticated { _ => implicit request =>
     entryForm.bindFromRequest.fold(
       errors => BadRequest(views.html.index(Entry.all(), errors)),
       entry => {
