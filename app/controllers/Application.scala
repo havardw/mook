@@ -27,7 +27,7 @@ object Application extends Controller {
   def handleLogin = Action { implicit request =>
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(views.html.login(formWithErrors)),
-      user => Redirect(routes.Entries.entries).withSession("username" -> user._1) /* TODO Get use name instead of e-mail. */
+      user => Redirect(routes.Entries.entries).withSession("email" -> user._1) /* TODO Store user object in session instead of e-mail. */
     )
   }
 }

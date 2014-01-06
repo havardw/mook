@@ -1,4 +1,4 @@
-@(entries: List[Entry], entryForm: Form[Entry])(implicit lang: play.api.i18n.Lang)
+@(entries: List[Entry], entryForm: Form[Entry], user: User)(implicit lang: play.api.i18n.Lang)
 
 @import helper._
 @import org.joda.time.format.DateTimeFormat

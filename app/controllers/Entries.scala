@@ -3,7 +3,7 @@ package controllers
 import play.api.data._
 import play.api.data.Forms._
 import play.api.mvc._
-import models.Entry
+import models.{User, Entry}
 
 object Entries extends Controller with Secured {
 
@@ -14,13 +14,17 @@ object Entries extends Controller with Secured {
     )(Entry.apply)(Entry.unapply)
   )
 
-  def entries = IsAuthenticated {  _ => _ =>
-    Ok(views.html.index(Entry.all(), entryForm))
+  def entries = IsAuthenticated { email => _ =>
+    User.getUserByEmail(email).map { user =>
+      Ok(views.html.index(Entry.all(), entryForm, user))
+    }.getOrElse(Forbidden)
   }
 
-  def newEntry = IsAuthenticated { _ => implicit request =>
+  def newEntry = IsAuthenticated { email => implicit request =>
     entryForm.bindFromRequest.fold(
-      errors => BadRequest(views.html.index(Entry.all(), errors)),
+      errors => User.getUserByEmail(email).map { user =>
+        BadRequest(views.html.index(Entry.all(), errors, user))
+      }.getOrElse(Forbidden),
       entry => {
         Entry.create(entry.date, entry.text)
         Redirect(routes.Entries.entries)
