@@ -167,7 +167,7 @@ void handlePostEntry(String user, Sql sql, Request request, Response response) {
 		DateFormat parser = SimpleDateFormat("yyyy-MM-dd");
 		Date parsedDate = parser.parse(date);
 		try {
-			sql.insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)", parsedDate, text, "Anonym");
+			sql.insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)", parsedDate, text, user);
 		} catch (Exception e) {
 			response.writeString(e.string);
 			response.responseStatus = httpServerError;
