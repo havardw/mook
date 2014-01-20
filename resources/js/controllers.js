@@ -4,7 +4,7 @@ mookApp.controller('EntryController', function ($scope, $http, $filter) {
 
     $scope.update = function(entry) {
         $http.post("/entry", entry).success(function() {
-            $scope.entries.unshift(angular.copy(entry));
+            $scope.entries.push(angular.copy(entry));
         });
     };
 

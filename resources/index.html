@@ -26,7 +26,7 @@
         <button ng-click="update(entry)">Lagre</button>
     </form>
 
-    <article ng-repeat="entry in entries">
+    <article ng-repeat="entry in entries | orderBy: '-date'">
         <h2>{{entry.date}} {{entry.author}}</h2>
         {{entry.text}}
     </article>
