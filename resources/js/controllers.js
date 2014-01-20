@@ -11,7 +11,9 @@ mookApp.controller('EntryController', function ($scope, $http, $filter) {
     $http.get('/entry').success(function(data) {
         $scope.entries = data;
     }).error(function(data, status, headers, config) {
-        console.log("Error callback");
+        if (status == "401") {
+        	window.location = "login.html";
+        }
     });
 
     // Defaults for new entry

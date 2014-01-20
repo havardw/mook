@@ -31,11 +31,25 @@ shared void run() {
             path = startsWith("/entry");
             //handle requests to this path
             void service(Request request, Response response) {
-                if (request.method.equals(get)) {
-                    handleGetEntries(sql, response);
-                } else if (request.method.equals(post)) {                    
-                    handlePostEntry(sql, request, response);
-                }
+                // Check for valid user
+                if (exists user=request.session.get("user"), is String user) {
+                    if (request.method.equals(get)) {
+                        handleGetEntries(sql, response);
+                    } else if (request.method.equals(post)) {
+                        value xsrf = request.header("X-XSRF-TOKEN");
+                        if (exists xsrf, exists uuid=request.session.get("uuid")) {
+                            if (xsrf == uuid) {
+                                handlePostEntry(user, sql, request, response);
+                            } else {
+                                response.responseStatus = httpUnauthorized;
+                            }
+                        } else {
+                            response.responseStatus = httpUnauthorized;
+                        }
+                    }
+                } else {
+                    response.responseStatus = httpUnauthorized;
+                } 
             }
             acceptMethod = { get, post };
         },
@@ -144,7 +158,7 @@ void handleGetEntries(Sql sql, Response response) {
 	response.writeString(entries.string);
 }
 
-void handlePostEntry(Sql sql, Request request, Response response) {
+void handlePostEntry(String user, Sql sql, Request request, Response response) {
 
 	String? date = request.parameter("date");
 	String? text = request.parameter("text");
