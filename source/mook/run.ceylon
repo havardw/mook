@@ -28,7 +28,7 @@ shared void run() {
     value server = newServer {
         //an endpoint, on the path /hello
         Endpoint {
-            path = startsWith("/hello");
+            path = startsWith("/entry");
             //handle requests to this path
             void service(Request request, Response response) {
                 if (request.method.equals(get)) {

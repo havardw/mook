@@ -3,12 +3,12 @@ var mookApp = angular.module('mookApp', []);
 mookApp.controller('EntryController', function ($scope, $http, $filter) {
 
     $scope.update = function(entry) {
-        $http.post("/hello", entry).success(function() {
+        $http.post("/entry", entry).success(function() {
             $scope.entries.unshift(angular.copy(entry));
         });
     };
 
-    $http.get('/hello').success(function(data) {
+    $http.get('/entry').success(function(data) {
         $scope.entries = data;
     }).error(function(data, status, headers, config) {
         console.log("Error callback");
