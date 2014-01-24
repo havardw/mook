@@ -75,24 +75,6 @@ void handleLogin(Sql sql, Request request, Response response) {
 	String? email = request.parameter("email");
 	String? password = request.parameter("password");
 	
-	if (exists email) {
-		print("email = " + email);
-	} else {
-		print("no email");
-	}
-	
-	if (exists password) {
-		print("password = " + password);
-	} else {
-		print("no password");
-	}
-	
-	if (exists email, exists password) {
-		print("Combination OK");
-	} else {
-		print("No combination");
-	}
-	
 	if (exists email, exists password) {
 		String? user = sql.queryForString("select name from user where email=? and hash=SHA2(?, 512)", email, password);
 		if (exists user) {
