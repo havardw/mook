@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width">
     <title>Mook</title>
 
-    <script src="js/util.js"></script>
     <script type="text/javascript">
-        verifyLogin();
+        if (document.cookie.indexOf("XSRF-TOKEN=") === -1 && document.referrer.indexOf("/login.html") === -1) {
+            document.location = "login.html";
+        }
     </script>
 
     <link rel="stylesheet" href="css/mook.css">
