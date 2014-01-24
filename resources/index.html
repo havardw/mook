@@ -4,10 +4,9 @@
     <meta charset="utf-8">
     <title>Mook</title>
 
+    <script src="js/util.js"></script>
     <script type="text/javascript">
-        if (!document.cookie.contains("XSRF-TOKEN=")) {
-            document.location = "login.html";
-        }
+        verifyLogin();
     </script>
 
     <link rel="stylesheet" href="css/mook.css">
