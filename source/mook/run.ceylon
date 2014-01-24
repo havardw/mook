@@ -76,16 +76,20 @@ void handleLogin(Sql sql, Request request, Response response) {
 	String? password = request.parameter("password");
 	
 	if (exists email, exists password) {
-		String? user = sql.queryForString("select name from user where email=? and hash=SHA2(?, 512)", email, password);
-		if (exists user) {
-			request.session.put("user", user);
-			String uuid = UUID.randomUUID().string;
-			request.session.put("uuid", uuid);
-			response.addHeader(Header("Set-Cookie", "XSRF-TOKEN=``uuid``"));
-			response.addHeader(Header("Location", getUrl(request, "index.html")));
-			response.responseStatus = httpFormRedirect;
-		} else {
+		if (email.empty || password.empty) {
 			response.responseStatus = httpUnauthorized;
+		} else {
+			String? user = sql.queryForString("select name from user where email=? and hash=SHA2(?, 512)", email, password);
+			if (exists user) {
+				request.session.put("user", user);
+				String uuid = UUID.randomUUID().string;
+				request.session.put("uuid", uuid);
+				response.addHeader(Header("Set-Cookie", "XSRF-TOKEN=``uuid``"));
+				response.addHeader(Header("Location", getUrl(request, "index.html")));
+				response.responseStatus = httpFormRedirect;
+			} else {
+				response.responseStatus = httpUnauthorized;
+			}
 		}
 	} else {
 		response.responseStatus = httpBadRequest;
