@@ -18,8 +18,16 @@ label {
     padding-right: 1em;
 }
 
-
 input[type=submit], button {
     padding: 0.5em 2em;
     font-size: 120%;
+}
+
+/* Entries */
+article {
+    background-color: #eee;
+    border: 2px solid lightblue;
+    border-radius: 10px;
+    padding: 1em;
+    margin-top: 2em;
 }
