@@ -15,21 +15,26 @@
     <script src="js/controllers.js"></script>
 </head>
 <body ng-controller="EntryController">
-    <h1>Mook</h1>
+    <header>
+        <h1>Mook</h1>
+    </header>
 
-    <h2>Skriv en melding</h2>
+    <main>
 
-    <form name="entryForm">
-        <p><label for="date">Dato</label>
-            <input type="date" name="date" id="date" ng-model="entry.date"></p>
-        <p><label for="text">Melding</label>
-            <textarea name="text" id="text" ng-model="entry.text" cols="60" rows="8" placeholder="Skriv en melding"></textarea></p>
-        <button ng-click="update(entry)">Lagre</button>
-    </form>
+        <h2>Skriv en melding</h2>
 
-    <article ng-repeat="entry in entries | orderBy: '-date'">
-        <h2>{{entry.date}} {{entry.author}}</h2>
-        {{entry.text}}
-    </article>
+        <form name="entryForm">
+            <p><label for="date">Dato</label>
+                <input type="date" name="date" id="date" ng-model="entry.date"></p>
+            <p><label for="text">Melding</label>
+                <textarea name="text" id="text" ng-model="entry.text" rows="8" placeholder="Skriv en melding"></textarea></p>
+            <button ng-click="update(entry)">Lagre</button>
+        </form>
+
+        <article ng-repeat="entry in entries | orderBy: '-date'">
+            <h2>{{entry.date}} {{entry.author}}</h2>
+            {{entry.text}}
+        </article>
+    </main>
 </body>
 </html>

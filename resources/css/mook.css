@@ -1,5 +1,23 @@
 body {
     font-family: "Trebuchet MS", Verdana, Geneva, Arial, Helvetica, sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+header {
+    background-color: black;
+    color: white;
+    display: block; /* For you old farts. */
+}
+
+header > h1, main {
+    margin: 0 auto;
+    padding: 0.5rem;
+    max-width: 50rem;
+}
+
+main {
+    display: block;
 }
 
 
@@ -21,6 +39,10 @@ label {
 input[type=submit], button {
     padding: 0.5em 2em;
     font-size: 120%;
+}
+
+#text {
+    width: 100%;
 }
 
 /* Entries */
