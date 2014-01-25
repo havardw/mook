@@ -33,7 +33,8 @@
                           rows="8" placeholder="Skriv en melding"
                           ng-model="entry.text" ng-disabled="isSending()"></textarea></p>
             <button ng-click="update(entry)"
-                    ng-disabled="isEmpty(entry) || isSending()">Lagre</button>
+                    ng-disabled="isEmpty(entry) || isSending()"
+                    ng-class="{loading: isSending()}">Lagre</button>
         </form>
 
         <article ng-repeat="entry in entries | orderBy: '-date'">

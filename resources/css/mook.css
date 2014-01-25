@@ -45,6 +45,17 @@ input[type=submit], button {
     width: 100%;
 }
 
+/* Absolute position to prevent the text jumping around. */
+button {
+    position: relative;
+}
+button.loading::before {
+    content: url("../img/ajax-loader.gif");
+    position: absolute;
+    left: 10px;
+    top: 10px;
+}
+
 /* Entries */
 article {
     background-color: #eee;
