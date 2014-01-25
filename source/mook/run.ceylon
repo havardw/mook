@@ -8,13 +8,26 @@ import ceylon.net.http.server.endpoints { serveStaticFile }
 import java.text { SimpleDateFormat, DateFormat }
 import java.util { Date, UUID }
 
+
+
 Integer httpFormRedirect = 303;
 Integer httpBadRequest   = 400;
 Integer httpUnauthorized = 401;
 Integer httpServerError  = 500;
 
+
+void log(String message, Exception? e = null) {
+	DateFormat formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+	String date = formatter.format(Date());
+	print("``date`` ``message``");
+	if (exists e) {
+		e.printStackTrace();
+	}
+}
+
 "Run the module `test.http`."
 shared void run() {
+	
 	
 	// Set up database
 	MysqlDataSource ds = MysqlDataSource();
@@ -67,6 +80,7 @@ shared void run() {
     };
  
     //start the server on port 8080
+    log("Starting server");
     server.start();
 }
 
@@ -79,6 +93,7 @@ void handleLogin(Sql sql, Request request, Response response) {
 		if (email.empty || password.empty) {
 			response.responseStatus = httpUnauthorized;
 		} else {
+			log("Login attempt for user ``email``");
 			String? user = sql.queryForString("select name from user where email=? and hash=SHA2(?, 512)", email, password);
 			if (exists user) {
 				request.session.put("user", user);
@@ -87,8 +102,10 @@ void handleLogin(Sql sql, Request request, Response response) {
 				response.addHeader(Header("Set-Cookie", "XSRF-TOKEN=``uuid``"));
 				response.addHeader(Header("Location", getUrl(request, "index.html")));
 				response.responseStatus = httpFormRedirect;
+				log("Login successful for ``email``");
 			} else {
 				response.responseStatus = httpUnauthorized;
+				log("Login failed for ``email``");
 			}
 		}
 	} else {
@@ -138,7 +155,7 @@ void handleGetEntries(Sql sql, Response response) {
 			entries.add(o);
 		}
 	}
-	print(entries.string);
+	log("Returned ``entries.size`` entries");
 
 	response.addHeader(Header("Content-Type", "application/json; encoding=utf-8"));
 	response.writeString(entries.string);
@@ -154,7 +171,9 @@ void handlePostEntry(String user, Sql sql, Request request, Response response) {
 		Date parsedDate = parser.parse(date);
 		try {
 			sql.insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)", parsedDate, text, user);
+			log("Inserted new entry fom ``user``");
 		} catch (Exception e) {
+			log("Inserting entry failed", e);
 			response.writeString(e.string);
 			response.responseStatus = httpServerError;
 		}
