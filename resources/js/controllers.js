@@ -2,22 +2,55 @@ var mookApp = angular.module('mookApp', []);
 
 mookApp.controller('EntryController', function ($scope, $http, $filter) {
 
+    var sending = false;
+
     $scope.update = function(entry) {
-        $http.post("/entry", entry).success(function() {
-            $scope.entries.push(angular.copy(entry));
-        });
+        sending = true;
+        $http.post("/entry", entry)
+            .success(function() {
+                sending = false;
+                $scope.entries.push(angular.copy(entry));
+                $scope.entry = newEntry();
+                $scope.entryForm.$setPristine();
+            })
+            .error(function(data, status) {
+                sending = false;
+                handleError(status, data);
+            });
+    };
+
+    $scope.isEmpty = function(entry) {
+        return entry.text === "";
+    };
+
+    $scope.isSending = function() {
+        return sending;
     };
 
     $http.get('/entry').success(function(data) {
         $scope.entries = data;
-    }).error(function(data, status, headers, config) {
-        if (status == "401") {
-        	window.location = "login.html";
-        }
+    }).error(function(data, status) {
+        handleError(status, data);
     });
 
+    function handleError(status, data) {
+        if (status == "401") {
+            window.location = "login.html";
+        } else {
+            var msg = "Server error " + status;
+            if (data !== undefined && data !== "") {
+                msg += "\n" + data;
+            }
+            alert(msg);
+        }
+    }
+
+    function newEntry() {
+        return {date: $filter('date')(new Date(), "yyyy-MM-dd"), text: "" };
+    }
+
     // Defaults for new entry
-    $scope.entry = {date: $filter('date')(new Date(), "yyyy-MM-dd") };
+    $scope.entry = newEntry();
 
     /*******************************************************************************************************************
      * Not possible yet to post JSON to Ceylon. Code from

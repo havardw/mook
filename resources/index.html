@@ -26,10 +26,14 @@
 
         <form name="entryForm">
             <p><label for="date">Dato</label>
-                <input type="date" name="date" id="date" ng-model="entry.date"></p>
+                <input type="date" name="date" id="date"
+                       ng-model="entry.date" ng-disabled="isSending()"></p>
             <p><label for="text">Melding</label>
-                <textarea name="text" id="text" ng-model="entry.text" rows="8" placeholder="Skriv en melding"></textarea></p>
-            <button ng-click="update(entry)">Lagre</button>
+                <textarea name="text" id="text"
+                          rows="8" placeholder="Skriv en melding"
+                          ng-model="entry.text" ng-disabled="isSending()"></textarea></p>
+            <button ng-click="update(entry)"
+                    ng-disabled="isEmpty(entry) || isSending()">Lagre</button>
         </form>
 
         <article ng-repeat="entry in entries | orderBy: '-date'">
