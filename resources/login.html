@@ -6,18 +6,25 @@
     <title>Mook Innlogging</title>
     <link rel="stylesheet" href="css/mook.css">
 </head>
-<body ng-controller="EntryController">
-<h1>Logg inn</h1>
+<body>
+    <header>
+        <h1>Mook</h1>
+    </header>
 
-<form name="entryForm" method="post" action="postlogin">
-    <div class="grid">
-        <p><label for="email">E-post</label>
-            <input type="email" name="email" id="email"></p>
-        <p><label for="password">Passord</label>
-            <input type="password" name="password" id="password"></p>
-    </div>
-    <p><input type="submit" value="Logg inn"></p>
-</form>
+    <main>
+
+        <h1>Logg inn</h1>
+
+        <form name="entryForm" method="post" action="postlogin">
+            <div class="grid">
+                <p><label for="email">E-post</label>
+                    <input type="email" name="email" id="email"></p>
+                <p><label for="password">Passord</label>
+                    <input type="password" name="password" id="password"></p>
+            </div>
+            <p><input type="submit" value="Logg inn"></p>
+        </form>
+    </main>
 
 </body>
 </html>
