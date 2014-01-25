@@ -5,8 +5,9 @@ import ceylon.net.http { post, get, Header }
 import com.mysql.jdbc.jdbc2.optional { MysqlDataSource }
 import ceylon.net.http.server.endpoints { serveStaticFile }
 
+import java.io { FileReader }
 import java.text { SimpleDateFormat, DateFormat }
-import java.util { Date, UUID }
+import java.util { Date, UUID, Properties }
 
 
 
@@ -27,21 +28,64 @@ void log(String message, Exception? e = null) {
 
 "Run the module `test.http`."
 shared void run() {
-	
-	
-	// Set up database
 	MysqlDataSource ds = MysqlDataSource();
-	ds.url = "jdbc:mysql://wigtil.net:3306/mook_dev";
-	ds.user = "mook";
-	ds.setPassword("2QcV6e6z");
+	variable String contextPath = "";
 	
-	value sql = Sql(ds);	
+	String? configFile = process.propertyValue("mook.config");
+	if (exists configFile) {
+		Properties config = Properties();
+		config.load(FileReader(configFile));
+		String? dbUrl  = config.getProperty("db.url");
+		String? dbUser = config.getProperty("db.user");
+		String? dbPass = config.getProperty("db.pass");
+		if (exists dbUrl, exists dbUser, exists dbPass) {
+			ds.url = dbUrl;
+			ds.user = dbUser;
+			ds.setPassword(dbPass);
+			log("Read database settings");
+		} else {
+			process.writeErrorLine("Can't configure database, exiting");
+			return;
+		}
+		
+		String? configContext = config.getProperty("context");
+		if (exists configContext) {
+			if (configContext.startsWith("/")) {
+				contextPath = configContext;
+			} else {
+				contextPath = "/``configContext``";
+			}
+			
+		}
+		log("Context path is '``contextPath``'");
+	} else {
+		process.writeErrorLine("No config file found, set with property 'mook.config'");
+		return;
+	}
+
+	
+	
+	
+	value sql = Sql(ds);
+	
+	
+	String contextAwareFileMapper(Request request) {
+		String path = request.path;
+		if (path.startsWith(contextPath), contextPath.size > 0) {
+			String substring = path.segment(contextPath.size, path.size); 
+			return substring;
+		} else {
+			return path;
+		}
+	}
+	
+	value serveStatic = serveStaticFile("/home/havardw/prosjekter/mook/resources", contextAwareFileMapper);	
 	
     //create a HTTP server
     value server = newServer {
         //an endpoint, on the path /hello
         Endpoint {
-            path = startsWith("/entry");
+            path = startsWith("``contextPath``/entry");
             //handle requests to this path
             void service(Request request, Response response) {
                 // Check for valid user
@@ -67,7 +111,7 @@ shared void run() {
             acceptMethod = { get, post };
         },
         Endpoint {
-            path = startsWith("/postlogin");
+            path = startsWith("``contextPath``/postlogin");
             void service(Request request, Response response) {
                 handleLogin(sql, request, response);
             }
@@ -75,7 +119,10 @@ shared void run() {
         },
         AsynchronousEndpoint {
             path = startsWith("");
-            serveStaticFile("/home/havardw/prosjekter/mook/resources");
+            void service(Request request, Response response, Anything() complete) {
+                log("Serving static file for ``request.path``");
+                serveStatic(request, response, complete);
+            }
         }
     };
  
@@ -83,6 +130,8 @@ shared void run() {
     log("Starting server");
     server.start();
 }
+
+
 
 
 void handleLogin(Sql sql, Request request, Response response) {
