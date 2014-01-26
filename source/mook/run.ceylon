@@ -71,11 +71,16 @@ shared void run() {
 	
 	String contextAwareFileMapper(Request request) {
 		String path = request.path;
+		String file;
 		if (path.startsWith(contextPath), contextPath.size > 0) {
-			String substring = path.segment(contextPath.size, path.size); 
-			return substring;
+			file = path.segment(contextPath.size, path.size);
 		} else {
-			return path;
+			file = path;
+		}
+		if (file.equals("/")) {
+			return "/index.html";
+		} else {
+			return file;
 		}
 	}
 	
