@@ -79,7 +79,7 @@ shared void run() {
 		}
 	}
 	
-	value serveStatic = serveStaticFile("/home/havardw/prosjekter/mook/resources", contextAwareFileMapper);	
+	value serveStatic = serveStaticFile("resources", contextAwareFileMapper);	
 	
     //create a HTTP server
     value server = newServer {
@@ -88,25 +88,7 @@ shared void run() {
             path = startsWith("``contextPath``/entry");
             //handle requests to this path
             void service(Request request, Response response) {
-                // Check for valid user
-                if (exists user=request.session.get("user"), is String user) {
-                    if (request.method.equals(get)) {
-                        handleGetEntries(sql, response);
-                    } else if (request.method.equals(post)) {
-                        value xsrf = request.header("X-XSRF-TOKEN");
-                        if (exists xsrf, exists uuid=request.session.get("uuid")) {
-                            if (xsrf == uuid) {
-                                handlePostEntry(user, sql, request, response);
-                            } else {
-                                response.responseStatus = httpUnauthorized;
-                            }
-                        } else {
-                            response.responseStatus = httpUnauthorized;
-                        }
-                    }
-                } else {
-                    response.responseStatus = httpUnauthorized;
-                } 
+                handleEntry(sql, request, response); 
             }
             acceptMethod = { get, post };
         },
@@ -131,13 +113,39 @@ shared void run() {
     server.start();
 }
 
+void handleEntry(Sql sql, Request request, Response response) {
+	value session = request.session;
+	value user = session.get("user");
 
+	// Check for valid user
+	if (is String user) {
+		if (request.method.equals(get)) {
+			handleGetEntries(sql, response);
+		} else if (request.method.equals(post)) {
+			value xsrf = request.header("X-XSRF-TOKEN");
+			if (exists xsrf, exists uuid=request.session.get("uuid")) {
+				if (xsrf == uuid) {
+					handlePostEntry(user, sql, request, response);
+				} else {
+					log("Invalid XSRF token");
+					response.responseStatus = httpUnauthorized;
+				}
+			} else {
+				log("XSRF token not set");
+				response.responseStatus = httpUnauthorized;
+			}
+		}
+	} else {
+		log("No user in session");
+		response.responseStatus = httpUnauthorized;
+	}
+}
 
 
 void handleLogin(Sql sql, Request request, Response response) {
 	String? email = request.parameter("email");
 	String? password = request.parameter("password");
-	
+
 	if (exists email, exists password) {
 		if (email.empty || password.empty) {
 			response.responseStatus = httpUnauthorized;
@@ -145,9 +153,11 @@ void handleLogin(Sql sql, Request request, Response response) {
 			log("Login attempt for user ``email``");
 			String? user = sql.queryForString("select name from user where email=? and hash=SHA2(?, 512)", email, password);
 			if (exists user) {
-				request.session.put("user", user);
+			    // Get a cache for the session to prevent multiple session objects being created
+				value session = request.session;
+				session.put("user", user);
 				String uuid = UUID.randomUUID().string;
-				request.session.put("uuid", uuid);
+				session.put("uuid", uuid);
 				response.addHeader(Header("Set-Cookie", "XSRF-TOKEN=``uuid``"));
 				response.addHeader(Header("Location", getUrl(request, "index.html")));
 				response.responseStatus = httpFormRedirect;
