@@ -173,10 +173,15 @@ void handleLogin(Sql sql, Request request, Response response) {
 }
 
 String getUrl(Request request, String page) {
-	value protocol = request.scheme;
-	String? host = request.header("Host");
+	variable String protocol;
+	if (exists header=request.header("X-Forwarded-Proto")) {
+		protocol = header;
+	} else {
+		protocol = request.scheme;
+	}
 	variable String url = protocol + "://";
-
+	
+	String? host = request.header("Host");
 	if (exists host) {
 		url += host;
 	} else {
