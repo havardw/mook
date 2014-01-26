@@ -6,7 +6,7 @@ mookApp.controller('EntryController', function ($scope, $http, $filter) {
 
     $scope.update = function(entry) {
         sending = true;
-        $http.post("/entry", entry)
+        $http.post("entry", entry)
             .success(function() {
                 sending = false;
                 $scope.entries.push(angular.copy(entry));
@@ -27,7 +27,7 @@ mookApp.controller('EntryController', function ($scope, $http, $filter) {
         return sending;
     };
 
-    $http.get('/entry').success(function(data) {
+    $http.get('entry').success(function(data) {
         $scope.entries = data;
     }).error(function(data, status) {
         handleError(status, data);

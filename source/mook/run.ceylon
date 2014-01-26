@@ -179,9 +179,9 @@ String getUrl(Request request, String page) {
 	}
 		
 	value path = request.path;
-	Integer? lastSlash = path.lastOccurrence("/");
+	Integer? lastSlash = path.lastOccurrence('/');
 	if (exists lastSlash) {
-		url += path[0..lastSlash] + "/" + page;
+		url += path[0..lastSlash]  + page;
 	} else {
 		url += "/" + page;
 	}
