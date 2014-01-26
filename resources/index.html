@@ -7,13 +7,12 @@
 
     <script type="text/javascript">
         if (document.cookie.indexOf("XSRF-TOKEN=") === -1 && document.referrer.indexOf("/login.html") === -1) {
+        	console.log("No login found (cookie=" + document.cookie + ", referrer=" + document.referrer + ")");
             document.location = "login.html";
         }
     </script>
 
     <link rel="stylesheet" href="css/mook.css">
-    <script src="lib/angular-1.2.9/angular.js"></script>
-    <script src="js/controllers.js"></script>
 </head>
 <body ng-controller="EntryController">
     <header>
@@ -42,5 +41,9 @@
             {{entry.text}}
         </article>
     </main>
+    
+    <script src="lib/angular-1.2.9/angular.js"></script>
+    <script src="js/controllers.js"></script>
+    
 </body>
 </html>

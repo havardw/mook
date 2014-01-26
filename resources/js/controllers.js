@@ -35,6 +35,7 @@ mookApp.controller('EntryController', function ($scope, $http, $filter) {
 
     function handleError(status, data) {
         if (status == "401") {
+        	console.log("Request not authenticated, redirecting to login page");
             window.location = "login.html";
         } else {
             var msg = "Server error " + status;
