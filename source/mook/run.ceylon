@@ -1,5 +1,5 @@
 import ceylon.dbc { Sql }
-import ceylon.json {Array, Object }
+import ceylon.json {Array, JsonObject=Object }
 import ceylon.net.http.server { AsynchronousEndpoint, Endpoint, Request, Response, startsWith, newServer }
 import ceylon.net.http { post, get, Header }
 import com.mysql.jdbc.jdbc2.optional { MysqlDataSource }
@@ -210,13 +210,22 @@ String getUrl(Request request, String page) {
 }
 
 void handleGetEntries(Sql sql, Response response) {
-	value rows = sql.rows("SELECT * FROM entry")({});
-	
+	log("Request for entries");
+	Sequential<Map<String,Object>> rows;
+	try {
+		rows = sql.rows("SELECT * FROM entry")({});
+	} catch (Exception e) {
+		log("Exception getting entries", e);
+		response.writeString(e.string);
+		response.responseStatus = httpServerError;
+		return;
+	}
+		
 	value entries = Array {};
 	DateFormat formatter = SimpleDateFormat("yyyy-MM-dd");
 	for (row in rows) {
 		if (is String a=row["author"], is String text=row["entrytext"], is Date d=row["entrydate"]) {
-			value o = Object {
+			value o = JsonObject {
 				"author" -> a,
 				"date" -> formatter.format(d),
 				"text" -> text
@@ -231,22 +240,22 @@ void handleGetEntries(Sql sql, Response response) {
 }
 
 void handlePostEntry(String user, Sql sql, Request request, Response response) {
-
+	log("POST for new entry");
 	String? date = request.parameter("date");
 	String? text = request.parameter("text");
 	
 	if (exists date, exists text) {
-		DateFormat parser = SimpleDateFormat("yyyy-MM-dd");
-		Date parsedDate = parser.parse(date);
+		DateFormat parser = SimpleDateFormat("yyyy-MM-dd");		
 		try {
+			Date parsedDate = parser.parse(date);
 			sql.insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)", parsedDate, text, user);
 			log("Inserted new entry fom ``user``");
+			response.writeString("OK");
 		} catch (Exception e) {
 			log("Inserting entry failed", e);
 			response.writeString(e.string);
 			response.responseStatus = httpServerError;
-		}
-		response.writeString("OK");
+		}		
 	} else {
 		response.writeString("Missing parameter");
 		response.responseStatus = httpBadRequest;
