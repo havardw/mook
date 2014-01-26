@@ -38,7 +38,7 @@
 
         <article ng-repeat="entry in entries | orderBy: '-date'">
             <h2>{{entry.date}} {{entry.author}}</h2>
-            {{entry.text}}
+            <div class="usertext">{{entry.text}}</div>
         </article>
     </main>
     

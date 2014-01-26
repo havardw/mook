@@ -64,3 +64,11 @@ article {
     padding: 1em;
     margin-top: 2em;
 }
+
+article > h2 {
+	margin-top: 0.2em;
+}
+
+.usertext {
+	white-space: pre-wrap;
+}
