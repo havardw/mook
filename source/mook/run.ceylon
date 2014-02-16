@@ -1,6 +1,7 @@
 import ceylon.dbc { Sql }
+import ceylon.file { parsePath, Path, Directory, File, Nil }
 import ceylon.json {Array, JsonObject=Object }
-import ceylon.net.http.server { AsynchronousEndpoint, Endpoint, Request, Response, startsWith, newServer }
+import ceylon.net.http.server { AsynchronousEndpoint, Endpoint, Request, Response, startsWith, newServer, UploadedFile }
 import ceylon.net.http { post, get, Header }
 import com.mysql.jdbc.jdbc2.optional { MysqlDataSource }
 import ceylon.net.http.server.endpoints { serveStaticFile }
@@ -26,10 +27,12 @@ void log(String message, Exception? e = null) {
 	}
 }
 
+
 "Run the module `test.http`."
 shared void run() {
 	MysqlDataSource ds = MysqlDataSource();
 	variable String contextPath = "";
+	Directory imageDir;
 	
 	String? configFile = process.propertyValue("mook.config");
 	if (exists configFile) {
@@ -58,13 +61,29 @@ shared void run() {
 			
 		}
 		log("Context path is '``contextPath``'");
+		
+		String? imageConfig = config.getProperty("image.dir");
+		if (exists imageConfig) {
+			Path imagePath = parsePath(imageConfig);
+			if (is Nil imagePath) {
+				imageDir = imagePath.createDirectory();
+				log("Created image directory ``imagePath``");
+			} else if (is Directory r = imagePath.resource) {
+				imageDir = r;
+			} else {
+				log("Config property 'image'.dir' is not a directory, exiting");
+				return;
+			}
+		} else {
+			log("Config property 'image'.dir' is not a directory, exiting");
+			return;
+		}
+		
 	} else {
 		process.writeErrorLine("No config file found, set with property 'mook.config'");
 		return;
 	}
 
-	
-	
 	
 	value sql = Sql(ds);
 	
@@ -84,7 +103,7 @@ shared void run() {
 		}
 	}
 	
-	value serveStatic = serveStaticFile("resources", contextAwareFileMapper);	
+	value serveStatic = serveStaticFile("resources", contextAwareFileMapper);
 	
     //create a HTTP server
     value server = newServer {
@@ -94,6 +113,14 @@ shared void run() {
             //handle requests to this path
             void service(Request request, Response response) {
                 handleEntry(sql, request, response); 
+            }
+            acceptMethod = { get, post };
+        },
+        AsynchronousEndpoint {
+            path = startsWith("``contextPath``/image");
+            //handle requests to this path
+            void service(Request request, Response response, Anything() complete) {
+                handleImage(imageDir, request, response, complete); 
             }
             acceptMethod = { get, post };
         },
@@ -144,6 +171,40 @@ void handleEntry(Sql sql, Request request, Response response) {
 		log("No user in session");
 		response.responseStatus = httpUnauthorized;
 	}
+}
+
+void handleImage(Directory imageDir, Request request, Response response, Anything() complete) {
+	if (request.method.equals(get)) {
+		serveStaticFile(imageDir.string, (Request request) => request.relativePath)(request, response, complete);
+	} else {
+		UploadedFile? img = request.file("img");
+		if (exists img) {
+			log("Got upload, path ``img.file``, file name ``img.fileName``");
+			if (is File imgFile = img.file.resource) {
+				String uuid = UUID.randomUUID().string;
+				String fileName = "``uuid``.jpg";
+				Path filePath = imageDir.path.childPath(fileName);
+				if (is Nil newResource = filePath.resource) {
+					imgFile.copy(newResource);
+					log("File saved as ``filePath``");
+					
+					JsonObject result = JsonObject();
+					result.put("filename", fileName);
+				} else {
+					log("Target file for copy already exists: ``filePath``");
+					response.responseStatus = httpServerError;
+				}				
+			} else {
+				log("Upload ``img.file.resource`` is not a file");
+				response.responseStatus = httpBadRequest;
+			}
+		} else {
+			log("No image file in request");
+			response.responseStatus = httpBadRequest;
+		}
+				
+		complete();
+	}	
 }
 
 
