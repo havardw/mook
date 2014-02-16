@@ -107,7 +107,6 @@ shared void run() {
 	
     //create a HTTP server
     value server = newServer {
-        //an endpoint, on the path /hello
         Endpoint {
             path = startsWith("``contextPath``/entry");
             //handle requests to this path
