@@ -1,31 +1,13 @@
 import ceylon.dbc { Sql }
-import ceylon.file { parsePath, Path, Directory, File, Nil }
-import ceylon.json {Array, JsonObject=Object }
-import ceylon.net.http.server { AsynchronousEndpoint, Endpoint, Request, Response, startsWith, newServer, UploadedFile }
-import ceylon.net.http { post, get, Header }
+import ceylon.file { parsePath, Path, Directory, Nil }
+import ceylon.net.http.server { AsynchronousEndpoint, Endpoint, Request, Response, startsWith, newServer }
+import ceylon.net.http { post }
 import com.mysql.jdbc.jdbc2.optional { MysqlDataSource }
 import ceylon.net.http.server.endpoints { serveStaticFile }
 
 import java.io { FileReader }
-import java.text { SimpleDateFormat, DateFormat }
-import java.util { Date, UUID, Properties }
+import java.util { Properties }
 
-
-
-Integer httpFormRedirect = 303;
-Integer httpBadRequest   = 400;
-Integer httpUnauthorized = 401;
-Integer httpServerError  = 500;
-
-
-void log(String message, Exception? e = null) {
-	DateFormat formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-	String date = formatter.format(Date());
-	print("``date`` ``message``");
-	if (exists e) {
-		e.printStackTrace();
-	}
-}
 
 
 "Run the module `test.http`."
@@ -107,22 +89,8 @@ shared void run() {
 	
     //create a HTTP server
     value server = newServer {
-        Endpoint {
-            path = startsWith("``contextPath``/entry");
-            //handle requests to this path
-            void service(Request request, Response response) {
-                handleEntry(sql, request, response); 
-            }
-            acceptMethod = { get, post };
-        },
-        AsynchronousEndpoint {
-            path = startsWith("``contextPath``/image");
-            //handle requests to this path
-            void service(Request request, Response response, Anything() complete) {
-                handleImage(imageDir, request, response, complete); 
-            }
-            acceptMethod = { get, post };
-        },
+        EntryController(contextPath, sql),
+        ImageController(contextPath, imageDir),
         Endpoint {
             path = startsWith("``contextPath``/postlogin");
             void service(Request request, Response response) {
@@ -142,182 +110,4 @@ shared void run() {
     //start the server on port 8080
     log("Starting server");
     server.start();
-}
-
-void handleEntry(Sql sql, Request request, Response response) {
-	value session = request.session;
-	value user = session.get("user");
-
-	// Check for valid user
-	if (is String user) {
-		if (request.method.equals(get)) {
-			handleGetEntries(sql, response);
-		} else if (request.method.equals(post)) {
-			value xsrf = request.header("X-XSRF-TOKEN");
-			if (exists xsrf, exists uuid=request.session.get("uuid")) {
-				if (xsrf == uuid) {
-					handlePostEntry(user, sql, request, response);
-				} else {
-					log("Invalid XSRF token");
-					response.responseStatus = httpUnauthorized;
-				}
-			} else {
-				log("XSRF token not set");
-				response.responseStatus = httpUnauthorized;
-			}
-		}
-	} else {
-		log("No user in session");
-		response.responseStatus = httpUnauthorized;
-	}
-}
-
-void handleImage(Directory imageDir, Request request, Response response, Anything() complete) {
-	if (request.method.equals(get)) {
-		serveStaticFile(imageDir.string, (Request request) => request.relativePath)(request, response, complete);
-	} else {
-		UploadedFile? img = request.file("img");
-		if (exists img) {
-			log("Got upload, path ``img.file``, file name ``img.fileName``");
-			if (is File imgFile = img.file.resource) {
-				String uuid = UUID.randomUUID().string;
-				String fileName = "``uuid``.jpg";
-				Path filePath = imageDir.path.childPath(fileName);
-				if (is Nil newResource = filePath.resource) {
-					imgFile.copy(newResource);
-					log("File saved as ``filePath``");
-					
-					JsonObject result = JsonObject();
-					result.put("filename", fileName);
-				} else {
-					log("Target file for copy already exists: ``filePath``");
-					response.responseStatus = httpServerError;
-				}				
-			} else {
-				log("Upload ``img.file.resource`` is not a file");
-				response.responseStatus = httpBadRequest;
-			}
-		} else {
-			log("No image file in request");
-			response.responseStatus = httpBadRequest;
-		}
-				
-		complete();
-	}	
-}
-
-
-void handleLogin(Sql sql, Request request, Response response) {
-	String? email = request.parameter("email");
-	String? password = request.parameter("password");
-
-	if (exists email, exists password) {
-		if (email.empty || password.empty) {
-			response.responseStatus = httpUnauthorized;
-		} else {
-			log("Login attempt for user ``email``");
-			String? user = sql.queryForString("select name from user where email=? and hash=SHA2(?, 512)", email, password);
-			if (exists user) {
-			    // Get a cache for the session to prevent multiple session objects being created
-				value session = request.session;
-				session.put("user", user);
-				String uuid = UUID.randomUUID().string;
-				session.put("uuid", uuid);
-				response.addHeader(Header("Set-Cookie", "XSRF-TOKEN=``uuid``"));
-				response.addHeader(Header("Location", getUrl(request, "index.html")));
-				response.responseStatus = httpFormRedirect;
-				log("Login successful for ``email``");
-			} else {
-				response.responseStatus = httpUnauthorized;
-				log("Login failed for ``email``");
-			}
-		}
-	} else {
-		response.responseStatus = httpBadRequest;
-	}	
-}
-
-String getUrl(Request request, String page) {
-	variable String protocol;
-	if (exists header=request.header("X-Forwarded-Proto")) {
-		protocol = header;
-	} else {
-		protocol = request.scheme;
-	}
-	variable String url = protocol + "://";
-	
-	String? host = request.header("Host");
-	if (exists host) {
-		url += host;
-	} else {
-		url += request.destinationAddress.address;
-		value port = request.destinationAddress.port;
-		if ((protocol == "http" && port != 80)
-				|| (protocol == "https" && port != 443)) {
-			url += ":" + port.string;
-		}
-	}
-		
-	value path = request.path;
-	Integer? lastSlash = path.lastOccurrence('/');
-	if (exists lastSlash) {
-		url += path[0..lastSlash]  + page;
-	} else {
-		url += "/" + page;
-	}
-	
-	return url;
-}
-
-void handleGetEntries(Sql sql, Response response) {
-	log("Request for entries");
-	Sequential<Map<String,Object>> rows;
-	try {
-		rows = sql.rows("SELECT * FROM entry")({});
-	} catch (Exception e) {
-		log("Exception getting entries", e);
-		response.writeString(e.string);
-		response.responseStatus = httpServerError;
-		return;
-	}
-		
-	value entries = Array {};
-	DateFormat formatter = SimpleDateFormat("yyyy-MM-dd");
-	for (row in rows) {
-		if (is String a=row["author"], is String text=row["entrytext"], is Date d=row["entrydate"]) {
-			value o = JsonObject {
-				"author" -> a,
-				"date" -> formatter.format(d),
-				"text" -> text
-			};
-			entries.add(o);
-		}
-	}
-	log("Returned ``entries.size`` entries");
-
-	response.addHeader(Header("Content-Type", "application/json; encoding=utf-8"));
-	response.writeString(entries.string);
-}
-
-void handlePostEntry(String user, Sql sql, Request request, Response response) {
-	log("POST for new entry");
-	String? date = request.parameter("date");
-	String? text = request.parameter("text");
-	
-	if (exists date, exists text) {
-		DateFormat parser = SimpleDateFormat("yyyy-MM-dd");		
-		try {
-			Date parsedDate = parser.parse(date);
-			sql.insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)", parsedDate, text, user);
-			log("Inserted new entry fom ``user``");
-			response.writeString("OK");
-		} catch (Exception e) {
-			log("Inserting entry failed", e);
-			response.writeString(e.string);
-			response.responseStatus = httpServerError;
-		}		
-	} else {
-		response.writeString("Missing parameter");
-		response.responseStatus = httpBadRequest;
-	}	
 }
