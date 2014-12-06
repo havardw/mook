@@ -1,5 +1,5 @@
 import ceylon.net.http.server { startsWith, Endpoint, Response, Request }
-import ceylon.dbc { Sql }
+import ceylon.dbc { Sql, Row }
 import ceylon.net.http { post, get, Header }
 import java.util { Date }
 import ceylon.json { Array, JsonObject=Object }
@@ -42,9 +42,9 @@ void handleEntry(Sql sql, Request request, Response response) {
 
 void handleGetEntries(Sql sql, Response response) {
 	log("Request for entries");
-	Sequential<Map<String,Object>> rows;
+	Row[] rows;
 	try {
-		rows = sql.rows("SELECT * FROM entry")({});
+		rows = sql.Select("SELECT * FROM entry").execute();
 	} catch (Exception e) {
 		log("Exception getting entries", e);
 		response.writeString(e.string);
@@ -79,7 +79,7 @@ void handlePostEntry(String user, Sql sql, Request request, Response response) {
 		DateFormat parser = SimpleDateFormat("yyyy-MM-dd");		
 		try {
 			Date parsedDate = parser.parse(date);
-			sql.insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)", parsedDate, text, user);
+			sql.Insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)").execute(parsedDate, text, user);
 			log("Inserted new entry fom ``user``");
 			response.writeString("OK");
 		} catch (Exception e) {

@@ -1,4 +1,4 @@
-import ceylon.dbc { Sql }
+import ceylon.dbc { Sql, newConnectionFromDataSource }
 import ceylon.file { parsePath, Path, Directory, Nil }
 import ceylon.net.http.server { AsynchronousEndpoint, Endpoint, Request, Response, startsWith, newServer }
 import ceylon.net.http { post }
@@ -67,14 +67,14 @@ shared void run() {
 	}
 
 	
-	value sql = Sql(ds);
+	value sql = Sql(newConnectionFromDataSource(ds));
 	
 	
 	String contextAwareFileMapper(Request request) {
 		String path = request.path;
 		String file;
 		if (path.startsWith(contextPath), contextPath.size > 0) {
-			file = path.segment(contextPath.size, path.size);
+			file = path.spanFrom(contextPath.size);
 		} else {
 			file = path;
 		}

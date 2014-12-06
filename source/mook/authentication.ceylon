@@ -12,7 +12,7 @@ void handleLogin(Sql sql, Request request, Response response) {
 			response.responseStatus = httpUnauthorized;
 		} else {
 			log("Login attempt for user ``email``");
-			String? user = sql.queryForString("select name from user where email=? and hash=SHA2(?, 512)", email, password);
+			String? user = sql.Select("select name from user where email=? and hash=SHA2(?, 512)").singleValue(email, password);
 			if (exists user) {
 				// Get a cache for the session to prevent multiple session objects being created
 				value session = request.session;
