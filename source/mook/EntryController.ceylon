@@ -1,9 +1,10 @@
 import ceylon.net.http.server { startsWith, Endpoint, Response, Request }
 import ceylon.dbc { Sql, Row }
 import ceylon.net.http { post, get, Header }
-import java.util { Date }
+import ceylon.time { Date }
 import ceylon.json { Array, JsonObject=Object }
 import java.text { SimpleDateFormat, DateFormat }
+import java.util { JavaDate=Date }
 
 
 class EntryController(String contextPath, Sql sql) 
@@ -53,12 +54,11 @@ void handleGetEntries(Sql sql, Response response) {
 	}
 	
 	value entries = Array {};
-	DateFormat formatter = SimpleDateFormat("yyyy-MM-dd");
 	for (row in rows) {
 		if (is String a=row["author"], is String text=row["entrytext"], is Date d=row["entrydate"]) {
 			value o = JsonObject {
 				"author" -> a,
-				"date" -> formatter.format(d),
+				"date" -> formatIsoDate(d),
 				"text" -> text
 			};
 			entries.add(o);
@@ -70,6 +70,22 @@ void handleGetEntries(Sql sql, Response response) {
 	response.writeString(entries.string);
 }
 
+String formatIsoDate(Date date) {
+    variable String format = formatInteger(date.year) + "-";
+
+    if (date.month.integer < 10) {
+        format += "0";
+    }
+    format += formatInteger(date.month.integer) + "-";
+
+    if (date.day < 10) {
+        format += "0";
+    }
+    format += formatInteger(date.day);
+
+    return format;
+}
+
 void handlePostEntry(String user, Sql sql, Request request, Response response) {
 	log("POST for new entry");
 	String? date = request.parameter("date");
@@ -78,7 +94,7 @@ void handlePostEntry(String user, Sql sql, Request request, Response response) {
 	if (exists date, exists text) {
 		DateFormat parser = SimpleDateFormat("yyyy-MM-dd");		
 		try {
-			Date parsedDate = parser.parse(date);
+			JavaDate parsedDate = parser.parse(date);
 			sql.Insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)").execute(parsedDate, text, user);
 			log("Inserted new entry fom ``user``");
 			response.writeString("OK");
