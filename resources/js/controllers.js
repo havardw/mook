@@ -1,6 +1,6 @@
 var mookApp = angular.module('mookApp', []);
 
-mookApp.controller('EntryController', function ($scope, $http, $filter) {
+mookApp.controller('EntryController', function ($scope, $http) {
 
     var sending = false;
 
@@ -47,7 +47,7 @@ mookApp.controller('EntryController', function ($scope, $http, $filter) {
     }
 
     function newEntry() {
-        return {date: $filter('date')(new Date(), "yyyy-MM-dd"), text: "" };
+        return {date: new Date(), text: "" };
     }
 
     // Defaults for new entry
@@ -89,7 +89,10 @@ mookApp.controller('EntryController', function ($scope, $http, $filter) {
                         query += param(innerObj) + '&';
                     }
                 }
-                else if(value instanceof Object)
+                else if (value instanceof Date) {
+                    query += encodeURIComponent(name) + "=" + value.getTime() + "&";
+                }
+                else if (value instanceof Object)
                 {
                     for(subName in value)
                     {

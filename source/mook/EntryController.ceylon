@@ -1,7 +1,7 @@
 import ceylon.net.http.server { startsWith, Endpoint, Response, Request }
 import ceylon.dbc { Sql, Row }
 import ceylon.net.http { post, get, Header }
-import ceylon.time { Date }
+import ceylon.time { Date, dateTime }
 import ceylon.json { Array, JsonObject=Object }
 import java.text { SimpleDateFormat, DateFormat }
 import java.util { JavaDate=Date }
@@ -58,7 +58,7 @@ void handleGetEntries(Sql sql, Response response) {
 		if (is String a=row["author"], is String text=row["entrytext"], is Date d=row["entrydate"]) {
 			value o = JsonObject {
 				"author" -> a,
-				"date" -> formatIsoDate(d),
+				"date" -> dateTime(d.year, d.month, d.day).instant().millisecondsOfEpoch, // Convert to DateTime because there is no instant() method on date
 				"text" -> text
 			};
 			entries.add(o);
@@ -88,14 +88,13 @@ String formatIsoDate(Date date) {
 
 void handlePostEntry(String user, Sql sql, Request request, Response response) {
 	log("POST for new entry");
-	String? date = request.parameter("date");
+	String? dateStr = request.parameter("date");
 	String? text = request.parameter("text");
 	
-	if (exists date, exists text) {
-		DateFormat parser = SimpleDateFormat("yyyy-MM-dd");		
+	if (exists dateStr, exists dateInt = parseInteger(dateStr), exists text) {
 		try {
-			JavaDate parsedDate = parser.parse(date);
-			sql.Insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)").execute(parsedDate, text, user);
+			JavaDate dateObj = JavaDate(dateInt);
+			sql.Insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)").execute(dateObj, text, user);
 			log("Inserted new entry from ``user``");
 			response.writeString("OK");
 		} catch (Exception e) {
@@ -104,6 +103,7 @@ void handlePostEntry(String user, Sql sql, Request request, Response response) {
 			response.responseStatus = httpServerError;
 		}		
 	} else {
+	    log("Error in request, missing parameter");
 		response.writeString("Missing parameter");
 		response.responseStatus = httpBadRequest;
 	}	
