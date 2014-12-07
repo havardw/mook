@@ -96,7 +96,7 @@ void handlePostEntry(String user, Sql sql, Request request, Response response) {
 		try {
 			JavaDate parsedDate = parser.parse(date);
 			sql.Insert("insert into entry (entryDate, entryText, author) values(?, ?, ?)").execute(parsedDate, text, user);
-			log("Inserted new entry fom ``user``");
+			log("Inserted new entry from ``user``");
 			response.writeString("OK");
 		} catch (Exception e) {
 			log("Inserting entry failed", e);
