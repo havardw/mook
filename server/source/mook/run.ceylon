@@ -1,16 +1,15 @@
 import ceylon.dbc { Sql, newConnectionFromDataSource }
 import ceylon.file { parsePath, Path, Directory, Nil }
-import ceylon.net.http.server { AsynchronousEndpoint, Endpoint, Request, Response, startsWith, newServer }
+import ceylon.net.http.server { Endpoint, Request, Response, startsWith, newServer }
 import ceylon.net.http { post }
 import com.mysql.jdbc.jdbc2.optional { MysqlDataSource }
-import ceylon.net.http.server.endpoints { serveStaticFile }
 
 import java.io { FileReader }
 import java.util { Properties }
 
 
 
-"Run the module `test.http`."
+"Run Mook server."
 shared void run() {
 	MysqlDataSource ds = MysqlDataSource();
 	variable String contextPath = "";
@@ -69,41 +68,16 @@ shared void run() {
 	
 	value sql = Sql(newConnectionFromDataSource(ds));
 	
-	
-	String contextAwareFileMapper(Request request) {
-		String path = request.path;
-		String file;
-		if (path.startsWith(contextPath), contextPath.size > 0) {
-			file = path.spanFrom(contextPath.size);
-		} else {
-			file = path;
-		}
-		if (file.equals("/")) {
-			return "/index.html";
-		} else {
-			return file;
-		}
-	}
-	
-	value serveStatic = serveStaticFile("resources", contextAwareFileMapper);
-	
     //create a HTTP server
     value server = newServer {
         EntryController(contextPath, sql),
         ImageController(contextPath, imageDir),
         Endpoint {
-            path = startsWith("``contextPath``/postlogin");
+            path = startsWith("``contextPath``/login");
             void service(Request request, Response response) {
                 handleLogin(sql, request, response);
             }
             acceptMethod = { post };
-        },
-        AsynchronousEndpoint {
-            path = startsWith("");
-            void service(Request request, Response response, Anything() complete) {
-                log("Serving static file for ``request.path``");
-                serveStatic(request, response, complete);
-            }
         }
     };
  

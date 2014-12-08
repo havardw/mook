@@ -1,7 +1,7 @@
-import ceylon.net.http { Header }
 import java.util { UUID }
 import ceylon.net.http.server { Response, Request }
 import ceylon.dbc { Sql, Row }
+import ceylon.json { JsonObject=Object }
 
 void handleLogin(Sql sql, Request request, Response response) {
 	String? email = request.parameter("email");
@@ -20,9 +20,16 @@ void handleLogin(Sql sql, Request request, Response response) {
 				session.put("user", user);
 				String uuid = UUID.randomUUID().string;
 				session.put("uuid", uuid);
-				response.addHeader(Header("Set-Cookie", "XSRF-TOKEN=``uuid``"));
-				response.addHeader(Header("Location", getUrl(request, "index.html")));
-				response.responseStatus = httpFormRedirect;
+				
+				value auth = JsonObject {
+					"auth" -> uuid
+				};
+				
+				if (is String user) {
+					auth.put("name", user);
+				}
+
+				response.writeString(auth.string);
 				log("Login successful for ``email``");
 			} else {
 				response.responseStatus = httpUnauthorized;
