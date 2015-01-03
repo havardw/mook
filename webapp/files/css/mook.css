@@ -20,6 +20,10 @@ main {
     display: block;
 }
 
+.error {
+    color: red;
+}
+
 
 /* Form layout. */
 .grid {

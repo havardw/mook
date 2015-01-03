@@ -1,6 +1,6 @@
 import ceylon.net.http.server { startsWith, Endpoint, Response, Request }
 import ceylon.dbc { Sql, Row }
-import ceylon.net.http { post, get, Header }
+import ceylon.net.http { post, get }
 import ceylon.time { Date, dateTime }
 import ceylon.json { Array, JsonObject=Object }
 import java.util { JavaDate=Date }
@@ -21,16 +21,16 @@ void handleEntry(Sql sql, Request request, Response response) {
 		if (request.method.equals(get)) {
 			handleGetEntries(sql, response);
 		} else if (request.method.equals(post)) {
-			value xsrf = request.header("X-XSRF-TOKEN");
-			if (exists xsrf, exists uuid=request.session.get("uuid")) {
-				if (xsrf == uuid) {
+			value auth = request.header("auth");
+			if (exists auth, exists uuid=request.session.get("uuid")) {
+				if (auth == uuid) {
 					handlePostEntry(user, sql, request, response);
 				} else {
-					log("Invalid XSRF token");
+					log("Invalid auth token in header");
 					response.responseStatus = httpUnauthorized;
 				}
 			} else {
-				log("XSRF token not set");
+				log("Auth token not set");
 				response.responseStatus = httpUnauthorized;
 			}
 		}
@@ -64,9 +64,8 @@ void handleGetEntries(Sql sql, Response response) {
 		}
 	}
 	log("Returned ``entries.size`` entries");
-	
-	response.addHeader(Header("Content-Type", "application/json; encoding=utf-8"));
-	response.writeString(entries.string);
+
+	writeJson(response, entries);
 }
 
 String formatIsoDate(Date date) {

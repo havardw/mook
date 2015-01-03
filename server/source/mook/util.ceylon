@@ -1,7 +1,8 @@
 import java.util { Date }
 import java.text { SimpleDateFormat, DateFormat }
-import ceylon.net.http.server { Request }
-Integer httpFormRedirect = 303;
+import ceylon.net.http { Header }
+import ceylon.net.http.server { Request, Response }
+
 Integer httpBadRequest   = 400;
 Integer httpUnauthorized = 401;
 Integer httpServerError  = 500;
@@ -14,6 +15,11 @@ void log(String message, Exception? e = null) {
 	if (exists e) {
 		e.printStackTrace();
 	}
+}
+
+void writeJson(Response response, Object obj) {
+	response.addHeader(Header("Content-Type", "application/json; charset=utf-8"));
+	response.writeString(obj.string);
 }
 
 String getUrl(Request request, String page) {

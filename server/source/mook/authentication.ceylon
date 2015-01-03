@@ -9,6 +9,7 @@ void handleLogin(Sql sql, Request request, Response response) {
 	
 	if (exists email, exists password) {
 		if (email.empty || password.empty) {
+			log("Rejecting login with empty parameters");
 			response.responseStatus = httpUnauthorized;
 		} else {
 			log("Login attempt for user ``email``");
@@ -22,14 +23,14 @@ void handleLogin(Sql sql, Request request, Response response) {
 				session.put("uuid", uuid);
 				
 				value auth = JsonObject {
-					"auth" -> uuid
+					"token" -> uuid
 				};
 				
 				if (is String user) {
 					auth.put("name", user);
 				}
 
-				response.writeString(auth.string);
+				writeJson(response, auth);
 				log("Login successful for ``email``");
 			} else {
 				response.responseStatus = httpUnauthorized;
@@ -37,6 +38,7 @@ void handleLogin(Sql sql, Request request, Response response) {
 			}
 		}
 	} else {
+		log("Required parameters for login not set");
 		response.responseStatus = httpBadRequest;
 	}	
 }
