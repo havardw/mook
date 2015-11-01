@@ -10,7 +10,7 @@ import java.util { Properties }
 
 
 
-"Run the module `test.http`."
+"Run the module."
 shared void run() {
 	MysqlDataSource ds = MysqlDataSource();
 	variable String contextPath = "";
@@ -24,7 +24,7 @@ shared void run() {
 		String? dbUser = config.getProperty("db.user");
 		String? dbPass = config.getProperty("db.pass");
 		if (exists dbUrl, exists dbUser, exists dbPass) {
-			ds.url = dbUrl;
+			ds.setURL(dbUrl);
 			ds.user = dbUser;
 			ds.setPassword(dbPass);
 			log("Read database settings");
