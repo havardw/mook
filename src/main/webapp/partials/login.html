@@ -1,0 +1,13 @@
+<h1>Logg inn</h1>
+
+<form name="loginForm" ng-submit="login(email, password, remember)">
+    <div class="grid">
+        <p><label for="email">E-post</label>
+            <input type="email" name="email" id="email" ng-model="email" autofocus="autofocus"></p>
+        <p><label for="password">Passord</label>
+            <input type="password" name="password" id="password" ng-model="password"></p>
+    </div>
+    <p><input type="checkbox" name="remember" id="remember" ng-model="remember"> <label for="remember">Husk innlogging</label></p>
+    <div class="error">{{ error }}</div>
+    <p><input type="submit" value="Logg inn"></p>
+</form>
