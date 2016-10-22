@@ -14,4 +14,12 @@
             </New>
         </Arg>
     </New>
+
+    <!-- Define image dir path, path must exist -->
+    <New class="org.eclipse.jetty.plus.jndi.EnvEntry">
+        <Arg></Arg>
+        <Arg>MookImagePath</Arg>
+        <Arg type="java.lang.String">/var/lib/mook/img</Arg>
+        <Arg type="boolean">true</Arg>
+    </New>
 </Configure>
