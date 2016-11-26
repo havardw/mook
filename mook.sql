@@ -6,12 +6,13 @@ CREATE TABLE entry (
   PRIMARY KEY (id)
 );
 
+-- Max length for index on varchar is 191 in MariaDB when using utf8mb4
 CREATE TABLE user (
   id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name varchar(40) NOT NULL,
-  email varchar(255) NOT NULL,
-  hash varchar(255) NOT NULL,
-  UNIQUE KEY (email)
+  email varchar(191) NOT NULL,
+  hash varchar(191) NOT NULL,
+  UNIQUE (email)
 );
 
 CREATE TABLE image (

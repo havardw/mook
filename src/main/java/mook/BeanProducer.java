@@ -1,44 +1,40 @@
 package mook;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.inject.Produces;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 @Slf4j
 public class BeanProducer {
 
-    private final InitialContext ic;
-
-    public BeanProducer()  {
-        try {
-            ic = new InitialContext();
-        } catch (NamingException e) {
-            throw new RuntimeException("Failed to create InitialContext", e);
-        }
-    }
-
     @Produces
     @Singleton
     DataSource sql() {
-        try {
-            return (DataSource)ic.lookup("java:comp/env/jdbc/MookDS");
-        } catch (NamingException e) {
-            throw new RuntimeException("DataSource lookup failed");
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getRequiredProperty("mook.db.url"));
+        config.setUsername(getRequiredProperty("mook.db.username"));
+        config.setPassword(getRequiredProperty("mook.db.password"));
+
+        return new HikariDataSource(config);
+    }
+
+    private static String getRequiredProperty(String key) {
+        String value = System.getProperty(key);
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalStateException(String.format("Required property %1$s not set, use -D%1$s=... on command line", key));
         }
+
+        return value;
     }
 
     @Produces
     @Named("imagePath")
     String imagePath() {
-        try {
-            return (String) ic.lookup("java:comp/env/MookImagePath");
-        } catch (NamingException e) {
-            throw new RuntimeException("Failed to look up image path, please define env-entry 'MookImagePath'");
-        }
+        return getRequiredProperty("mook.image.path");
     }
 }
