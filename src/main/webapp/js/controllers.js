@@ -18,7 +18,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
             data.sort(function(a, b) {
                 if (a.date > b.date) {
                     return -1;
-                } else if (b.date < a.date) {
+                } else if (b.date > a.date) {
                     return 1;
                 } else {
                     return 0;
