@@ -47,10 +47,10 @@ public class ImageServiceTest {
 
         byte[] img = Files.readAllBytes(Paths.get(imageUrl.toURI()));
 
-        String result = service.saveImage(img, 2);
+        Image result = service.saveImage(img, 2);
 
-        assertThat(result, matchesPattern("\\d+\\.png"));
-        Path imgPath = Paths.get(base.toString(), "original", result);
+        assertThat(result.getName(), matchesPattern("\\d+\\.png"));
+        Path imgPath = Paths.get(base.toString(), "original", result.getName());
         assertTrue(String.format("Path '%s' does not exist", imgPath), Files.exists(imgPath));
     }
 
@@ -59,10 +59,10 @@ public class ImageServiceTest {
         URL imageUrl = getClass().getResource("/image.jpg");
         byte[] img = Files.readAllBytes(Paths.get(imageUrl.toURI()));
 
-        String result = service.saveImage(img, 2);
+        Image result = service.saveImage(img, 2);
 
-        assertThat(result, matchesPattern("\\d+\\.jpg"));
-        Path imgPath = Paths.get(base.toString(), "original", result);
+        assertThat(result.getName(), matchesPattern("\\d+\\.jpg"));
+        Path imgPath = Paths.get(base.toString(), "original", result.getName());
         assertTrue(String.format("Path '%s' does not exist", imgPath), Files.exists(imgPath));
     }
 

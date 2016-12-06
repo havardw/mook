@@ -11,6 +11,7 @@ import javax.ws.rs.core.UriInfo;
 
 
 import java.net.URI;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,12 +46,12 @@ public class ImageControllerTest {
     public void postImage() throws Exception {
         when(mockUriInfo.getRequestUri()).thenReturn(new URI("https://www.example.org/unittest/api/image"));
         when(mockSecurityContext.getUserPrincipal()).thenReturn(new MookPrincipal(1, "test@example.org", "Unni Test"));
-        when(mockImageService.saveImage(any(), eq(1))).thenReturn("42.jpg");
+        when(mockImageService.saveImage(any(), eq(1))).thenReturn(new Image(42, "42.jpg", null));
 
         Response response = controller.postImage(new byte[28], mockSecurityContext, mockUriInfo);
 
         assertEquals(201, response.getStatus());
         assertEquals("/unittest/api/image/42.jpg", response.getHeaderString("Location"));
+        assertEquals(42, ((Image)response.getEntity()).getId());
     }
-
 }

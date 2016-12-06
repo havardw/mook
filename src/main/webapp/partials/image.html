@@ -1,0 +1,9 @@
+<div class="image">
+    <img src="{{$ctrl.url}}">
+
+    <div ng-if="$ctrl.editMode">
+        <textarea  ng-model="$ctrl.image.caption" rows="3" placeholder="Beskriv bildet hvis du vil"></textarea>
+    </div>
+
+    <div class="caption" ng-if="!$ctrl.editMode">{{$ctrl.image.caption}}</div>
+</div>

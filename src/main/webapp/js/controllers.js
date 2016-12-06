@@ -6,6 +6,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
 
     var sending = false;
     var loading = true;
+    var imageStatus = [];
     var autoSave;
 
 
@@ -35,9 +36,9 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
 
     function createAutoSave() {
         console.log("Checking autosave");
-        if ($scope.entryForm.$dirty && !sending) {
+        if (!$scope.isEmpty() && !sending) {
             console.log("Saving entry");
-            $window.localStorage.setItem("mook.entry.autosave", $scope.entry.text);
+            $window.localStorage.setItem("mook.entry.autosave", JSON.stringify($scope.entry));
         }
 
     }
@@ -45,7 +46,10 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
     // Defaults for new entry
     $scope.entry = newEntry();
     if ($window.localStorage.getItem("mook.entry.autosave")) {
-        $scope.entry.text = $window.localStorage.getItem("mook.entry.autosave");
+        var restoredEntry = JSON.parse($window.localStorage.getItem("mook.entry.autosave"));
+        // Date restored as String, convert to date again
+        restoredEntry.date = new Date(restoredEntry.date);
+        $scope.entry = restoredEntry;
     }
 
     // Auto save
@@ -59,6 +63,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
 
     $scope.update = function(entry) {
         sending = true;
+
         $http.post("api/entry", entry, { headers: { auth: AuthService.token }})
             .success(function() {
                 $window.localStorage.removeItem("mook.entry.autosave");
@@ -74,8 +79,8 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
             });
     };
 
-    $scope.isEmpty = function(entry) {
-        return entry.text === "";
+    $scope.isEmpty = function() {
+        return $scope.entry.text === "" && $scope.entry.images.length === 0;
     };
 
     $scope.isSending = function() {
@@ -84,6 +89,52 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
 
     $scope.isLoading = function() {
         return loading;
+    };
+
+    $scope.addImage = function(entry) {
+        var input = document.getElementById("imageUpload");
+
+        // Fixme Don't add an event listener for each click, but it works for now to get access to entry
+        input.addEventListener("change", function() {
+            for (var i = 0; i < input.files.length; i++) {
+                var file = input.files.item(i);
+                var url = $window.URL.createObjectURL(file);
+                var imageInfo = {url: url, loading: true};
+                var index = imageStatus.length;
+                imageStatus[length] = imageInfo;
+                uploadImage(entry, file, imageInfo, index);
+            }
+        });
+
+        input.click();
+    };
+
+    function uploadImage(entry, file, imageInfo, index) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            console.log("File read");
+
+            var config = {
+                headers: {
+                    auth: AuthService.token,
+                    "Content-Type": "application/octet-stream"
+                },
+                transformRequest: angular.identity
+            };
+
+            $http.post("api/image", e.target.result, config)
+                .success(function (data) {
+                    console.log("Image uploaded: " + JSON.stringify(data));
+                    entry.images[index] = data;
+                    imageInfo.loading = false;
+                })
+                .error(function(data, status) {
+                    handleError(status, data);
+                });
+        };
+
+        reader.readAsArrayBuffer(file);
+
     }
 
 
@@ -102,7 +153,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
     }
 
     function newEntry() {
-        return {date: new Date(), text: "" };
+        return {date: new Date(), text: "", images: [] };
     }
 });
 

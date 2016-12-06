@@ -5,13 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import java.util.List;
+import java.util.stream.Collectors;
 
 @Singleton
 @Slf4j
@@ -24,30 +21,75 @@ public class EntryService {
         this.ds = ds;
     }
 
-    public List<Entry> getEntries() {
-        ArrayList<Entry> result = new ArrayList<>();
+    public Collection<Entry> getEntries() {
+        Map<Integer, Entry> result = new HashMap<>();
 
         try (Connection con = ds.getConnection())  {
             ResultSet rs = con.createStatement().executeQuery("SELECT e.id, e.entrydate, e.entryText, u.name " +
                                                               "FROM entry e,user u WHERE e.userId = u.id " +
                                                               "ORDER BY e.entrydate DESC LIMIT 30");
             while (rs.next()) {
-                result.add(new Entry(rs.getString("u.name"), rs.getString("e.entrytext"), rs.getDate("e.entrydate")));
+                int id = rs.getInt("e.id");
+                result.put(id, new Entry(id, rs.getString("u.name"), rs.getString("e.entrytext"), rs.getDate("e.entrydate")));
+            }
+
+            String ids = result.keySet().stream().map(i -> Integer.toString(i)).collect(Collectors.joining(", "));
+
+            rs = con.createStatement().executeQuery(String.format("select * from image where entryId in (%s)", ids));
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                Image img = new Image(id,
+                                      id + "." + ImageService.extensionFromMimeType(rs.getString("mimeType")),
+                                      rs.getString("caption"));
+                int entryId = rs.getInt("entryId");
+                result.get(entryId).getImages().add(img);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Query for entries failed", e);
         }
 
-        return result;
+        return result.values();
     }
-    
-    public void saveEntry(String text, Date date, int userId) {
+
+    public int saveEntry(String text, Date date, List<Image> images, int userId) {
         try (Connection con = ds.getConnection()){
-            PreparedStatement ps = con.prepareStatement("insert into entry (entryDate, entryText, userId) values(?, ?, ?)");
+            con.setAutoCommit(false);
+            PreparedStatement ps = con.prepareStatement("insert into entry (entryDate, entryText, userId) values(?, ?, ?)",
+                                                        Statement.RETURN_GENERATED_KEYS);
             ps.setDate(1, new java.sql.Date(date.getTime()));
             ps.setString(2, text);
             ps.setInt(3, userId);
             ps.executeUpdate();
+
+            int entryId;
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                rs.next();
+                entryId = rs.getInt(1);
+            }
+
+
+            if (images != null && !images.isEmpty()) {
+                PreparedStatement ips = con.prepareStatement("update image set entryId = ?, caption = ? where id = ?");
+                for (Image image : images) {
+                    ips.setInt(1, entryId);
+                    ips.setString(2, image.getCaption());
+                    ips.setInt(3, image.getId());
+                    int changed = ips.executeUpdate();
+                    if (changed == 0) {
+                        throw new IllegalStateException(String.format("Image not updated, no image with ID %d?", image.getId()));
+                    }
+                }
+
+                log.info("Saved new entry ID {} with {} image(s)", entryId, images.size());
+            } else {
+                log.info("Saved new entry ID {} without images");
+            }
+
+            con.commit();
+
+
+
+            return entryId;
         } catch (SQLException e) {
             throw new RuntimeException("Failed to save entry", e);
         }

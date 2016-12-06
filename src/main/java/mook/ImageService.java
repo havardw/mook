@@ -3,6 +3,7 @@ package mook;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +37,7 @@ public class ImageService {
         this.ds = ds;
     }
 
-    public String saveImage(byte[] data, int userId) throws IOException {
+    public Image saveImage(byte[] data, int userId) throws IOException {
 
         String mimeType = checkMimeType(data);
         try (Connection con = ds.getConnection()) {
@@ -60,14 +61,25 @@ public class ImageService {
 
             con.commit();
 
-            return fileName;
+            return new Image(id, fileName, null);
         } catch (IOException ioe) {
             throw new RuntimeException("Failed to save file to file system", ioe);
         } catch (SQLException sqle) {
             throw new RuntimeException("Database error when saving file", sqle);
         }
+    }
 
-
+    public byte[] readImage(String name) {
+        Path image = Paths.get(basePath,  "original", name);
+        if (image.toFile().exists()) {
+            try {
+                return Files.readAllBytes(image);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to read image file", e);
+            }
+        } else {
+            return null;
+        }
     }
 
     private Path prepareDir(String... path) throws IOException {
@@ -94,7 +106,7 @@ public class ImageService {
         throw new IllegalArgumentException("Mime type not supported");
     }
 
-    private static String extensionFromMimeType(String mimeType) {
+    static String extensionFromMimeType(String mimeType) {
         switch (mimeType) {
             case MIME_PNG: return "png";
             case MIME_JPG: return "jpg";
@@ -110,5 +122,14 @@ public class ImageService {
         }
 
         return true;
+    }
+
+    public MediaType getMimeTypeFromName(String filename) {
+        String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+        switch (ext) {
+            case "png": return new MediaType("image", "png");
+            case "jpg": return new MediaType("image", "jpg");
+            default: return MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        }
     }
 }

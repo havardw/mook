@@ -3,13 +3,15 @@ package mook;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * REST endpoint for images.
@@ -29,13 +31,30 @@ public class ImageController {
     @Consumes({MediaType.APPLICATION_OCTET_STREAM})
     public Response postImage(byte[] data, @Context SecurityContext securityContext, @Context UriInfo uriInfo) throws IOException {
         log.info("POST for new image, {} bytes", data.length);
-        String fileName = imageService.saveImage(data, ((MookPrincipal)securityContext.getUserPrincipal()).getId());
-        log.info("Saved image as {}", fileName);
+        Image image = imageService.saveImage(data, ((MookPrincipal)securityContext.getUserPrincipal()).getId());
+        log.info("Saved image as {}", image.getName());
 
         // We want an URI without host, so start from the path
         UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getRequestUri().getPath());
-        uriBuilder.path(fileName);
-        return Response.created(uriBuilder.build()).build();
+        uriBuilder.path(image.getName());
+        Response.ResponseBuilder response = Response.created(uriBuilder.build());
+        response.entity(image);
+        return response.build();
     }
 
+    @GET
+    @Path("original/{name}")
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
+    public Response getOriginalImage(@PathParam("name") String name) {
+        byte[] data = imageService.readImage(name);
+        if (data == null) {
+            log.warn("Image {} not found", name);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } else {
+            Response.ResponseBuilder response = Response.ok();
+            response.type(imageService.getMimeTypeFromName(name));
+            response.entity(data);
+            return response.build();
+        }
+    }
 }

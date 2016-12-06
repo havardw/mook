@@ -8,14 +8,31 @@
         <textarea name="text" id="text"
                   rows="8" placeholder="Skriv en melding"
                   ng-model="entry.text" ng-disabled="isSending()"></textarea></p>
+
+    <div ng-repeat="image in entry.images">
+        <mookimg image="image" edit-mode="true"></mookimg>
+    </div>
+
     <button ng-click="update(entry)"
-            ng-disabled="isEmpty(entry) || isSending()"
+            ng-disabled="isEmpty() || isSending()"
             ng-class="{loading: isSending()}">Lagre</button>
+
+    <label>
+        <input type="file" accept="image/*" multiple="multiple" id="imageUpload" style="display: none">
+        <button style="margin-left: 3rem" ng-click="addImage(entry)">Legg til bilde</button>
+    </label>
+
 </form>
 
 <div ng-if="isLoading()" class="loading" style="margin-top: 2em">Henter logg</div>
 
-<article ng-repeat="entry in entries">
+<article class="entry" ng-repeat="entry in entries">
     <h2>{{entry.date | date:'d. MMMM yyyy'}} {{entry.author}}</h2>
     <div class="usertext">{{entry.text}}</div>
+
+    <div ng-repeat="image in entry.images">
+        <p>
+            <mookimg image="image"></mookimg>
+        </p>
+    </div>
 </article>

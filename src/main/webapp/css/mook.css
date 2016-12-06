@@ -45,7 +45,7 @@ input[type=submit], button {
     font-size: 120%;
 }
 
-#text {
+textarea {
     width: 100%;
 }
 
@@ -70,7 +70,7 @@ div.loading::before {
 article {
     background-color: #eee;
     border: 2px solid lightblue;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 1em;
     margin-top: 2em;
 }
@@ -79,6 +79,18 @@ article > h2 {
 	margin-top: 0.2em;
 }
 
-.usertext {
+.image {
+    text-align: center;
+}
+
+.image > img {
+    max-width: 500px;
+}
+
+.usertext, .caption {
 	white-space: pre-wrap;
+}
+
+.caption {
+    font-style: italic;
 }
