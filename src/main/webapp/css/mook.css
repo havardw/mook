@@ -66,6 +66,14 @@ div.loading::before {
     padding-right: 5px;
 }
 
+.entry-buttons {
+    margin-top: 1rem;
+}
+
+.entry-buttons > button { /* Affects first button only in current layout. */
+    margin-right: 3rem;
+}
+
 /* Entries */
 article {
     background-color: #eee;
@@ -84,7 +92,7 @@ article > h2 {
 }
 
 .image > img {
-    max-width: 500px;
+    max-width: 90%;
 }
 
 .usertext, .caption {
@@ -93,4 +101,16 @@ article > h2 {
 
 .caption {
     font-style: italic;
+}
+
+
+/* Adjustment for typical mobiles. */
+@media (max-width: 600px) {
+    input[type=submit], button {
+        padding: 0.5em;
+    }
+
+    .entry-buttons > button {
+        margin-right: 1rem;
+    }
 }

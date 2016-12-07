@@ -13,15 +13,16 @@
         <mookimg image="image" edit-mode="true"></mookimg>
     </div>
 
-    <button ng-click="update(entry)"
-            ng-disabled="isEmpty() || isSending()"
-            ng-class="{loading: isSending()}">Lagre</button>
+    <div class="entry-buttons">
+        <button ng-click="update(entry)"
+                ng-disabled="isEmpty() || isSending()"
+                ng-class="{loading: isSending()}">Lagre</button>
 
-    <label>
-        <input type="file" accept="image/*" multiple="multiple" id="imageUpload" style="display: none">
-        <button style="margin-left: 3rem" ng-click="addImage(entry)">Legg til bilde</button>
-    </label>
-
+        <label>
+            <input type="file" accept="image/*" multiple="multiple" id="imageUpload" style="display: none">
+            <button ng-click="addImage(entry)">Legg til bilde</button>
+        </label>
+    </div>
 </form>
 
 <div ng-if="isLoading()" class="loading" style="margin-top: 2em">Henter logg</div>
