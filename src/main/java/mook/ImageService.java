@@ -1,5 +1,13 @@
 package mook;
 
+import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.name.Rename;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
@@ -10,10 +18,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.*;
+import java.util.Iterator;
 
 /**
  * Data service for images.
  */
+@Slf4j
 public class ImageService {
 
     private static final byte[] MAGIC_PNG = { -119, 0x50, 0x4E, 0x47 };
@@ -61,6 +71,8 @@ public class ImageService {
 
             con.commit();
 
+            log.info("Saved image {}", fileName);
+
             return new Image(id, fileName, null);
         } catch (IOException ioe) {
             throw new RuntimeException("Failed to save file to file system", ioe);
@@ -71,7 +83,7 @@ public class ImageService {
 
     public byte[] readImage(String name) {
         Path image = Paths.get(basePath,  "original", name);
-        if (image.toFile().exists()) {
+        if (Files.exists(image)) {
             try {
                 return Files.readAllBytes(image);
             } catch (IOException e) {
@@ -79,6 +91,58 @@ public class ImageService {
             }
         } else {
             return null;
+        }
+    }
+
+    public byte[] getResizedImage(int size, String name) {
+        Path original = Paths.get(basePath,  "original", name);
+        if (!Files.exists(original)) {
+            return null;
+        }
+
+        // Create resized image if it doesn't exist
+        Path resized = Paths.get(basePath, Integer.toString(size), name);
+        if (!Files.exists(resized)) {
+            try {
+                prepareDir(Integer.toString(size));
+
+                int originalSize = getImageMaxDimension(name);
+                if (originalSize >= size) {
+                    log.info("Creating resized image size {} for {}", size, name);
+                    Thumbnails.of(original.toFile()).size(size, size).asFiles(resized.getParent().toFile(), Rename.NO_CHANGE);
+                } else {
+                    log.info("Image {} has size {}, using original for size {}", name, originalSize, size);
+                    Files.copy(original, resized);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to resize image", e);
+            }
+        }
+
+        try {
+            return Files.readAllBytes(resized);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read resized image file", e);
+        }
+    }
+
+    private int getImageMaxDimension(String name) throws IOException {
+        String ext = name.substring(name.lastIndexOf('.') + 1);
+
+        Iterator<ImageReader> iter = ImageIO.getImageReadersBySuffix(ext);
+        if (iter.hasNext()) {
+            ImageReader reader = iter.next();
+
+            try (ImageInputStream stream = new FileImageInputStream(Paths.get(basePath, "original", name).toFile())){
+                reader.setInput(stream);
+                int width = reader.getWidth(reader.getMinIndex());
+                int height = reader.getHeight(reader.getMinIndex());
+                return Math.max(width, height);
+            } finally {
+                reader.dispose();
+            }
+        } else {
+            throw new IllegalStateException("No image reader for file " + name);
         }
     }
 

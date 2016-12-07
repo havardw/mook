@@ -5,13 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * REST endpoint for images.
@@ -31,7 +25,7 @@ public class ImageController {
     @Consumes({MediaType.APPLICATION_OCTET_STREAM})
     public Response postImage(byte[] data, @Context SecurityContext securityContext, @Context UriInfo uriInfo) throws IOException {
         log.info("POST for new image, {} bytes", data.length);
-        Image image = imageService.saveImage(data, ((MookPrincipal)securityContext.getUserPrincipal()).getId());
+        Image image = imageService.saveImage(data, ((MookPrincipal) securityContext.getUserPrincipal()).getId());
         log.info("Saved image as {}", image.getName());
 
         // We want an URI without host, so start from the path
@@ -46,7 +40,22 @@ public class ImageController {
     @Path("original/{name}")
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     public Response getOriginalImage(@PathParam("name") String name) {
-        byte[] data = imageService.readImage(name);
+        return serveImageResponse(imageService.readImage(name), name);
+    }
+
+    @GET
+    @Path("resized/{size}/{name}")
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
+    public Response getResizedImage(@PathParam("size") int size, @PathParam("name") String name) {
+        if (size < 0 || size > 1500) {
+            log.warn("Can't resize to {} px", size);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        return serveImageResponse(imageService.getResizedImage(size, name), name);
+    }
+
+    private Response serveImageResponse(byte[] data, String name) {
         if (data == null) {
             log.warn("Image {} not found", name);
             return Response.status(Response.Status.NOT_FOUND).build();

@@ -11,7 +11,18 @@ function ImageViewController($http, $window, AuthService) {
         responseType: "blob"
     };
 
-    $http.get("api/image/original/" + ctrl.image.name, config).success(function(data) {
+
+    var size;
+    var maxDimension = Math.max($window.screen.width, $window.screen.height);
+    if (maxDimension >= 600) {
+        size = 800;
+    } else if (maxDimension >= 400) {
+        size = 600;
+    } else {
+        size = 400;
+    }
+
+    $http.get("api/image/resized/" + size + "/" + ctrl.image.name, config).success(function(data) {
         ctrl.url = $window.URL.createObjectURL(data);
     }).error(function(data, status) {
         console.log("Failed to load image data: " + status);
