@@ -32,7 +32,6 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         if (!skipPaths.contains(path)) {
             String auth = context.getHeaderString("auth");
             if (auth != null && !auth.isEmpty()) {
-                log.info("Auth header: " + auth);
                 if (authService.isAuthenticated(auth)) {
                     context.setSecurityContext(new MookSecurityContext(authService.getPrincipal(auth)));
                 } else {
