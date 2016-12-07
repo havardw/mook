@@ -6,6 +6,9 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 
 /**
  * REST endpoint for images.
@@ -62,6 +65,8 @@ public class ImageController {
         } else {
             Response.ResponseBuilder response = Response.ok();
             response.type(imageService.getMimeTypeFromName(name));
+            // Images don't change, can cache for a long time
+            response.expires(Date.from(LocalDateTime.now().plusYears(2).toInstant(ZoneOffset.UTC)));
             response.entity(data);
             return response.build();
         }
