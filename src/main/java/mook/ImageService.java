@@ -94,6 +94,42 @@ public class ImageService {
         }
     }
 
+    public void deleteImage(String name, int userId) {
+        try (Connection con = ds.getConnection()) {
+            con.setAutoCommit(false);
+
+            int id = Integer.parseInt(name.substring(0, name.indexOf('.')));
+
+            try (PreparedStatement ps = con.prepareStatement("delete from image where id=? and userId=?")) {
+                ps.setInt(1, id);
+                ps.setInt(2, userId);
+                int rows = ps.executeUpdate();
+                if (rows != 1) {
+                    throw new RuntimeException("Failed to delete image with id " + id + " from database");
+                }
+            }
+
+            Path image = Paths.get(basePath, "original", name);
+            Files.delete(image);
+            log.info("Deleted original image {}", image);
+
+            Files.find(Paths.get(basePath), 2, (path, basicFileAttributes) -> path.endsWith(name))
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                            log.info("Deleted resized image " + p.subpath(p.getParent().getNameCount() - 2, p.getParent().getNameCount()));
+                        } catch (IOException e) {
+                            log.warn("Failed to delete resized image " + p);
+                        }
+                    });
+
+        } catch (IOException ioe) {
+            throw new RuntimeException("Failed to delete file from file system", ioe);
+        } catch (SQLException sqle) {
+            throw new RuntimeException("Database error when deleting file", sqle);
+        }
+    }
+
     public byte[] getResizedImage(int size, String name) {
         Path original = Paths.get(basePath,  "original", name);
         if (!Files.exists(original)) {
@@ -196,4 +232,5 @@ public class ImageService {
             default: return MediaType.APPLICATION_OCTET_STREAM_TYPE;
         }
     }
+
 }

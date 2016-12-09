@@ -28,6 +28,11 @@ function ImageViewController($http, $window, AuthService) {
         console.log("Failed to load image data: " + status);
         ctrl.url = "";
     });
+
+    ctrl.delete = function() {
+        console.log("Delete: " + ctrl.image.name);
+        ctrl.onDelete(ctrl.image);
+    }
 }
 
 mookApp.component("mookimg", {
@@ -35,6 +40,7 @@ mookApp.component("mookimg", {
     controller: ImageViewController,
     bindings: {
         image: "=",
-        editMode: "@"
+        editMode: "@",
+        onDelete: "&"
     }
 });

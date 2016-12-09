@@ -1,5 +1,8 @@
 <div class="image">
-    <img src="{{$ctrl.url}}">
+    <div class="wrapper">
+        <img src="{{$ctrl.url}}">
+        <img ng-if="$ctrl.editMode" class="close" src="img/close.svg" width="20" height="20" ng-click="$ctrl.delete() ">
+    </div>
 
     <div ng-if="$ctrl.editMode">
         <textarea  ng-model="$ctrl.image.caption" rows="3" placeholder="Beskriv bildet hvis du vil"></textarea>

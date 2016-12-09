@@ -109,6 +109,29 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
         input.click();
     };
 
+    $scope.deleteImage = function(image) {
+        console.log("Entry.deleteImage: " + image.name);
+
+        var index = $scope.entry.images.indexOf(image);
+        if (index >= 0) {
+            $scope.entry.images.splice(index, 1);
+            $http.delete("api/image/original/" + image.name, { headers: { auth: AuthService.token }})
+                .success(function() {
+                    console.log("Deleted image " + image.name);
+                })
+                .error(function(data, status) {
+                    console.log("Failed to delete image " + image.name +"(" + status + "): " + data);
+                });
+
+            // Make sure to clear autosave if the entry is empty
+            if ($scope.isEmpty()) {
+                $window.localStorage.removeItem("mook.entry.autosave");
+            } else {
+                $window.localStorage.setItem("mook.entry.autosave", JSON.stringify($scope.entry));
+            }
+        }
+    };
+
     function uploadImage(entry, file, imageInfo, index) {
         var reader = new FileReader();
         reader.onload = function(e) {

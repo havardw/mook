@@ -46,6 +46,12 @@ public class ImageController {
         return serveImageResponse(imageService.readImage(name), name);
     }
 
+    @DELETE
+    @Path("original/{name}")
+    public void deleteImage(@PathParam("name") String name, @Context SecurityContext securityContext) {
+        imageService.deleteImage(name, ((MookPrincipal)securityContext.getUserPrincipal()).getId());
+    }
+
     @GET
     @Path("resized/{size}/{name}")
     @Produces({MediaType.APPLICATION_OCTET_STREAM})

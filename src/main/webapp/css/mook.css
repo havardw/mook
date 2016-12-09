@@ -103,6 +103,17 @@ article > h2 {
     font-style: italic;
 }
 
+.image > .wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+.image > .wrapper > .close {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+}
+
 
 /* Adjustment for typical mobiles. */
 @media (max-width: 600px) {

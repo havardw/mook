@@ -10,7 +10,7 @@
                   ng-model="entry.text" ng-disabled="isSending()"></textarea></p>
 
     <div ng-repeat="image in entry.images">
-        <mookimg image="image" edit-mode="true"></mookimg>
+        <mookimg image="image" edit-mode="true" on-delete="deleteImage(image)"></mookimg>
     </div>
 
     <div class="entry-buttons">
