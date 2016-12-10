@@ -195,7 +195,7 @@ mookControllers.controller("LoginController", function ($scope, $http, $location
                 AuthService.setUserData(response.data.token, response.data.displayName, remember);
                 $location.path("/entries");
             })
-            .error(function(response) {
+            .catch(function(response) {
                 if (response.status === 401) {
                     console.log("Login failed");
                     $scope.error = "Feil e-post eller passord";
