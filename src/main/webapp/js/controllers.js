@@ -14,9 +14,10 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
         console.log("Redirecting to login check");
         $location.path("/resume");
     } else {
-        $http.get("api/entry", { headers: { auth: AuthService.token }}).success(function(data) {
+        $http.get("api/entry", { headers: { auth: AuthService.token }})
+            .then(function(response) {
             // Reverse sort for date
-            data.sort(function(a, b) {
+            response.data.sort(function(a, b) {
                 if (a.date > b.date) {
                     return -1;
                 } else if (b.date > a.date) {
@@ -25,11 +26,11 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
                     return 0;
                 }
             });
-            $scope.entries = data;
+            $scope.entries = response.data;
             loading = false;
-        }).error(function(data, status) {
+        }).catch(function(response) {
             loading = false;
-            handleError(status, data);
+            handleError(response);
         });
 
     }
@@ -65,7 +66,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
         sending = true;
 
         $http.post("api/entry", entry, { headers: { auth: AuthService.token }})
-            .success(function() {
+            .then(function() {
                 $window.localStorage.removeItem("mook.entry.autosave");
                 sending = false;
                 entry.author = AuthService.name;
@@ -73,9 +74,9 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
                 $scope.entry = newEntry();
                 $scope.entryForm.$setPristine();
             })
-            .error(function(data, status) {
+            .catch(function(response) {
                 sending = false;
-                handleError(status, data);
+                handleError(response);
             });
     };
 
@@ -116,11 +117,11 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
         if (index >= 0) {
             $scope.entry.images.splice(index, 1);
             $http.delete("api/image/original/" + image.name, { headers: { auth: AuthService.token }})
-                .success(function() {
+                .then(function() {
                     console.log("Deleted image " + image.name);
                 })
-                .error(function(data, status) {
-                    console.log("Failed to delete image " + image.name +"(" + status + "): " + data);
+                .catch(function(response) {
+                    console.log("Failed to delete image " + image.name +"(" + response.status + "): " + response.data);
                 });
 
             // Make sure to clear autosave if the entry is empty
@@ -146,14 +147,12 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
             };
 
             $http.post("api/image", e.target.result, config)
-                .success(function (data) {
-                    console.log("Image uploaded: " + JSON.stringify(data));
-                    entry.images[index] = data;
+                .then(function (response) {
+                    console.log("Image uploaded: " + JSON.stringify(response.data));
+                    entry.images[index] = response.data;
                     imageInfo.loading = false;
                 })
-                .error(function(data, status) {
-                    handleError(status, data);
-                });
+                .catch(handleError);
         };
 
         reader.readAsArrayBuffer(file);
@@ -161,15 +160,15 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
     }
 
 
-    function handleError(status, data) {
-        if (status == "401") {
+    function handleError(response) {
+        if (response.status == "401") {
         	console.log("Request not authenticated, redirecting to login page");
             AuthService.removeUserData();
             $location.path("/login");
         } else {
-            var msg = "Server error " + status;
+            var msg = "Server error " + response.status;
             if (data !== undefined && data !== "") {
-                msg += "\n" + data;
+                msg += "\n" + response.data;
             }
             alert(msg);
         }
@@ -190,18 +189,18 @@ mookControllers.controller("LoginController", function ($scope, $http, $location
     $scope.login = function (email, password, remember) {
 
         $http.post("api/login", {email: email, password: password})
-            .success(function(data) {
+            .then(function(response) {
                 console.log("Login successful");
                 console.log("Store login: " + remember);
-                AuthService.setUserData(data.token, data.displayName, remember);
+                AuthService.setUserData(response.data.token, response.data.displayName, remember);
                 $location.path("/entries");
             })
-            .error(function(data, status) {
-                if (status === 401) {
+            .error(function(response) {
+                if (response.status === 401) {
                     console.log("Login failed");
                     $scope.error = "Feil e-post eller passord";
                 } else {
-                    console.log(status + ": " + JSON.stringify(data));
+                    console.log(response.status + ": " + JSON.stringify(response.data));
                     $scope.error = "Ukjent feil, prøv igjen";
                 }
             });
@@ -222,12 +221,12 @@ mookControllers.controller("ResumeSessionController", function ($window, $http, 
         console.log("Attempting to restore session");
         auth = JSON.parse(authStr);
         $http.post("api/resumeSession", {token: auth.token})
-            .success(function(data) {
+            .then(function(response) {
                 console.log("Session restore successful");
-                AuthService.setUserData(data.token, data.displayName, true);
+                AuthService.setUserData(response.data.token, response.data.displayName, true);
                 $location.path("/entries");
             })
-            .error(function(data, status) {
+            .catch(function() {
                 console.log("Session restore failed");
                 $location.path("/login");
             });
