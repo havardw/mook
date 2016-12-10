@@ -99,6 +99,40 @@ article > h2 {
     max-width: 100%;
 }
 
+img.upload {
+    filter: grayscale(1);
+}
+
+.upload-progress-frame {
+    position: absolute;
+    bottom: 5%;
+    left: calc(5% - 2px);
+    width: 90%;
+    height: 5%;
+    border: 2px inset white;
+    background-color: black;
+}
+
+.upload-progress-bar {
+    background-color: white;
+    height: 100%;
+    width: 0;
+}
+
+.upload-text {
+    text-align: center;
+
+    animation-duration: 3s;
+    animation-name: fadeinout;
+    animation-iteration-count: infinite;
+}
+
+@keyframes fadeinout {
+    0%   { opacity: 0; }
+    50%  { opacity: 1; }
+    100% { opacity: 0; }
+}
+
 .usertext, .caption {
 	white-space: pre-wrap;
 }

@@ -6,7 +6,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
 
     var sending = false;
     var loading = true;
-    var imageStatus = [];
+    $scope.uploads = [];
     var autoSave;
 
 
@@ -36,9 +36,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
     }
 
     function createAutoSave() {
-        console.log("Checking autosave");
         if (!$scope.isEmpty() && !sending) {
-            console.log("Saving entry");
             $window.localStorage.setItem("mook.entry.autosave", JSON.stringify($scope.entry));
         }
 
@@ -98,16 +96,35 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
         // Fixme Don't add an event listener for each click, but it works for now to get access to entry
         input.addEventListener("change", function() {
             for (var i = 0; i < input.files.length; i++) {
-                var file = input.files.item(i);
-                var url = $window.URL.createObjectURL(file);
-                var imageInfo = {url: url, loading: true};
-                var index = imageStatus.length;
-                imageStatus[length] = imageInfo;
-                uploadImage(entry, file, imageInfo, index);
+                var upload = {
+                    url: $window.URL.createObjectURL(input.files.item(i)),
+                    file: input.files.item(i)
+                };
+                $scope.uploads.push(upload);
             }
         });
 
         input.click();
+    };
+
+    $scope.uploadComplete = function(upload, image) {
+        console.log("Upload complete");
+        console.log(upload);
+        console.log(image);
+        $scope.removeUpload(upload);
+        if (image) {
+            $scope.entry.images.push(image);
+        } else {
+            console.log("Image not set");
+        }
+
+    };
+
+    $scope.removeUpload = function(upload) {
+        var index = $scope.uploads.indexOf(upload);
+        if (index != -1) {
+            $scope.uploads.splice(index, 1);
+        }
     };
 
     $scope.deleteImage = function(image) {
@@ -132,33 +149,6 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
             }
         }
     };
-
-    function uploadImage(entry, file, imageInfo, index) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            console.log("File read");
-
-            var config = {
-                headers: {
-                    auth: AuthService.token,
-                    "Content-Type": "application/octet-stream"
-                },
-                transformRequest: angular.identity
-            };
-
-            $http.post("api/image", e.target.result, config)
-                .then(function (response) {
-                    console.log("Image uploaded: " + JSON.stringify(response.data));
-                    entry.images[index] = response.data;
-                    imageInfo.loading = false;
-                })
-                .catch(handleError);
-        };
-
-        reader.readAsArrayBuffer(file);
-
-    }
-
 
     function handleError(response) {
         if (response.status == "401") {

@@ -9,6 +9,10 @@
                   rows="8" placeholder="Skriv en melding"
                   ng-model="entry.text" ng-disabled="isSending()"></textarea></p>
 
+    <div ng-repeat="upload in uploads">
+        <mookupload upload="upload" on-complete="uploadComplete(upload, image)" on-failed="removeUpload(upload)"></mookupload>
+    </div>
+
     <div ng-repeat="image in entry.images">
         <mookimg image="image" edit-mode="true" on-delete="deleteImage(image)"></mookimg>
     </div>

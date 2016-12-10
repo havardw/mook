@@ -37,6 +37,50 @@ function ImageViewController($http, $window, AuthService) {
     }
 }
 
+function ImageUploadController($http, $window, $q, AuthService) {
+    var ctrl = this;
+
+    this.$onInit = function () {
+        uploadImage();
+    };
+
+    function uploadImage() {
+        console.log("uploadImage");
+        ctrl.upload.url = $window.URL.createObjectURL(ctrl.upload.file);
+
+        var config = {
+            headers: {
+                auth: AuthService.token,
+                "Content-Type": "application/octet-stream"
+            },
+            transformRequest: angular.identity,
+            uploadEventHandlers: {
+                progress: function(event) {
+                    var percent = (event.loaded / event.total) * 100;
+                    ctrl.progressStyle = { width: percent + "%"}
+                }
+            }
+        };
+
+        $http.post("api/image", ctrl.upload.file, config)
+            .then(function (response) {
+                console.log("Image uploaded: " + JSON.stringify(response.data));
+                ctrl.onComplete({upload: ctrl.upload, image: response.data});
+            })
+            .catch(function(response) {
+                console.log("Upload error");
+                console.log(response);
+                var retry = $window.confirm("Kunne ikke legge til bilde.\nVil du prøve på nytt?");
+                if (retry) {
+                    uploadImage();
+                } else {
+                    ctrl.onFailed(ctrl.upload);
+                }
+            });
+    }
+}
+
+
 mookApp.component("mookimg", {
     templateUrl: "partials/image.html",
     controller: ImageViewController,
@@ -44,5 +88,15 @@ mookApp.component("mookimg", {
         image: "=",
         editMode: "@",
         onDelete: "&"
+    }
+});
+
+mookApp.component("mookupload", {
+    templateUrl: "partials/imageupload.html",
+    controller: ImageUploadController,
+    bindings: {
+        upload: "=",
+        onComplete: "&",
+        onFailed: "&"
     }
 });
