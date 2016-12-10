@@ -91,8 +91,12 @@ article > h2 {
     text-align: center;
 }
 
-.image > img {
+.image > .wrapper {
     max-width: 90%;
+}
+
+.image > .wrapper > img {
+    max-width: 100%;
 }
 
 .usertext, .caption {
