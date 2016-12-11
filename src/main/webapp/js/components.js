@@ -37,7 +37,7 @@ function ImageViewController($http, $window, AuthService) {
     }
 }
 
-function ImageUploadController($http, $window, $q, AuthService) {
+function ImageUploadController($http, $window, AuthService) {
     var ctrl = this;
 
     this.$onInit = function () {
