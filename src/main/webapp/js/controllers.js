@@ -36,11 +36,12 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
 
     }
 
-    function createAutoSave() {
+    function updateAutoSave() {
         if (!$scope.isEmpty() && !sending) {
             $window.localStorage.setItem("mook.entry.autosave", JSON.stringify($scope.entry));
+        } else if ($scope.isEmpty() && $window.localStorage.getItem("mook.entry.autosave")) {
+            $window.localStorage.removeItem("mook.entry.autosave");
         }
-
     }
 
     // Defaults for new entry
@@ -53,10 +54,11 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
     }
 
     // Auto save
-    autoSave = $interval(createAutoSave, 5000);
+    autoSave = $interval(updateAutoSave, 5000);
     $scope.$on('$destroy', function() {
         if (angular.isDefined(autoSave)) {
             $interval.cancel(autoSave);
+            updateAutoSave();
             autoSave = undefined;
         }
     });
@@ -143,11 +145,7 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
                 });
 
             // Make sure to clear autosave if the entry is empty
-            if ($scope.isEmpty()) {
-                $window.localStorage.removeItem("mook.entry.autosave");
-            } else {
-                $window.localStorage.setItem("mook.entry.autosave", JSON.stringify($scope.entry));
-            }
+            updateAutoSave();
         }
     };
 
