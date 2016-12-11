@@ -32,7 +32,7 @@
 <div ng-if="isLoading()" class="loading" style="margin-top: 2em">Henter logg</div>
 
 <article class="entry" ng-repeat="entry in entries">
-    <h2>{{entry.date | date:'d. MMMM yyyy'}} {{entry.author}}</h2>
+    <h2>{{entry.date | friendlyDate}} <span class="author">Skrevet av {{entry.author}}</span></h2>
     <div class="usertext">{{entry.text}}</div>
 
     <div ng-repeat="image in entry.images">

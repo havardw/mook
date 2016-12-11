@@ -59,3 +59,49 @@ mookApp.factory("AuthService", ["$window", function ($window) {
 
     return auth;
 }]);
+
+mookApp.filter("friendlyDate", function() {
+    return function(input) {
+        var inDate = new Date(input);
+        inDate.setHours(0);
+        inDate.setMinutes(0);
+        inDate.setSeconds(0);
+        inDate.setMilliseconds(0);
+
+        var now = new Date();
+        now.setHours(0);
+        now.setMinutes(0);
+        now.setSeconds(0);
+        now.setMilliseconds(0);
+
+        var elapsed = now.getTime() - inDate.getTime();
+        var days = elapsed / (24 * 60 * 60 * 1000);
+
+        if (days === 0) {
+            return "I dag";
+        } else if (days === 1) {
+            return "I går";
+        } else if (days === 2) {
+            return "I forigårs";
+        } else if (days < 7 && days > 2) {
+            switch (inDate.getDay()) {
+                case 0: return "Søndag";
+                case 1: return "Mandag";
+                case 2: return "Tirsdag";
+                case 3: return "Onsdag";
+                case 4: return "Torsdag";
+                case 5: return "Fredag";
+                case 6: return "Lørdag";
+            }
+        } else {
+            // More than a week ago
+            var options;
+            if (inDate.getFullYear() === now.getFullYear()) {
+                options = {day: "numeric", month: "long"};
+            } else {
+                options = {day: "numeric", month: "long", year: "numeric"};
+            }
+            return inDate.toLocaleDateString("nb", options);
+        }
+    }
+});
