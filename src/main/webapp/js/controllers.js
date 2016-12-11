@@ -23,7 +23,8 @@ mookControllers.controller("EntryController", function ($scope, $http, $location
                 } else if (b.date > a.date) {
                     return 1;
                 } else {
-                    return 0;
+                    // Secondary sort by ID
+                    return b.id - a.id;
                 }
             });
             $scope.entries = response.data;
