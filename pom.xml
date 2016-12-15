@@ -197,7 +197,12 @@
                 <version>${jetty.versjon}</version>
 
                 <configuration>
-                    <systemPropertiesFile>${project.basedir}/dev.properties</systemPropertiesFile>
+                    <systemProperties>
+                        <systemProperty>
+                            <name>mook.config</name>
+                            <value>${basedir}/dev.properties</value>
+                        </systemProperty>
+                    </systemProperties>
                 </configuration>
 
                 <dependencies>

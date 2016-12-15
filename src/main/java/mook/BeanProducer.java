@@ -8,9 +8,39 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 @Slf4j
 public class BeanProducer {
+
+    private final Properties properties;
+
+    /**
+     * Load config from file.
+     */
+    public BeanProducer() {
+        String configFile = System.getProperty("mook.config");
+        if (configFile == null) {
+            throw new IllegalStateException("Path to config file not set, use '-Dmook.config=...' on command line");
+        }
+
+        File config = new File(configFile);
+        if (!config.exists() || !config.canRead()) {
+            throw new IllegalStateException("Config file '" + configFile + "' does not exist or is not readable");
+        }
+
+        properties = new Properties();
+        try (InputStream is = new FileInputStream(config)) {
+            properties.load(is);
+            is.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read config file " + configFile);
+        }
+    }
 
     @Produces
     @Singleton
@@ -23,10 +53,10 @@ public class BeanProducer {
         return new HikariDataSource(config);
     }
 
-    private static String getRequiredProperty(String key) {
-        String value = System.getProperty(key);
+    private String getRequiredProperty(String key) {
+        String value = properties.getProperty(key);
         if (value == null || value.trim().isEmpty()) {
-            throw new IllegalStateException(String.format("Required property %1$s not set, use -D%1$s=... on command line", key));
+            throw new IllegalStateException(String.format("Required property %s not set", key));
         }
 
         return value;
