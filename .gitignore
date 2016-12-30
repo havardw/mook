@@ -2,3 +2,5 @@ target
 .idea
 *.iml
 dev.properties
+node
+node_modules
