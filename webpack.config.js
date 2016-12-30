@@ -1,5 +1,6 @@
 var webpack = require("webpack");
 var path = require("path");
+var failPlugin = require('webpack-fail-plugin');
 
 var PACKAGE = require("./package.json");
 var SRC_DIR = path.resolve(__dirname, "src/main/javascript");
@@ -20,7 +21,10 @@ var config = {
                 loader : "babel"
             }
         ]
-    }
+    },
+    plugins: [
+        failPlugin
+    ]
 };
 
 module.exports = config;
