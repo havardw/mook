@@ -30,7 +30,7 @@ class Login extends Component {
     handleSubmit(event) {
         event.preventDefault();
         axios.post("api/login", { email: this.state.email, password: this.state.password})
-            .then(response => this.props.onLogin(response.data))
+            .then(response => this.props.onLogin(response.data, this.state.remember))
             .catch(error => {
                 console.warn("Login error: " + error.message);
                 if (error.response === undefined) {

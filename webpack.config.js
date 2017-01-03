@@ -23,7 +23,13 @@ var config = {
         ]
     },
     plugins: [
-        failPlugin
+        failPlugin,
+        function() {
+            this.plugin('watch-run', function(watching, callback) {
+                console.log('Begin compile at ' + new Date());
+                callback();
+            })
+        }
     ]
 };
 
