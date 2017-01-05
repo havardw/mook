@@ -9,6 +9,9 @@ class MookApp extends Component {
     constructor(props) {
         super(props);
 
+        // Check for supported browser
+        let supportedBrowser = (!!(window.ProgressEvent)) && (!!(window.FormData)); // Checks for XHR 2
+
         // Check for saved login
         let loginState = "unauthorized";
         let userData = window.sessionStorage.getItem("mook.userData");
@@ -24,7 +27,8 @@ class MookApp extends Component {
         this.state = {
             userData: userData,
             loginState: loginState,
-            globalError: null
+            globalError: null,
+            supportedBrowser: supportedBrowser
         };
 
 
@@ -65,7 +69,16 @@ class MookApp extends Component {
     }
 
     render() {
-        if (this.state.globalError) {
+        if (!this.state.supportedBrowser) {
+            return (
+                <div>
+                    <h1>Uffda!</h1>
+                    <p>Du bruker en for gammel nettleser, så Mook kommer ikke til å virke.</p>
+                    <p>Bruk en annen nettleser, gjerne nyeste versjon
+                        av <a href="https://www.mozilla.org/firefox/products/">Firefox</a> eller Google Chrome.</p>
+                </div>
+            );
+        } if (this.state.globalError) {
             return (
                 <div>
                     <h1>Beklager</h1>
