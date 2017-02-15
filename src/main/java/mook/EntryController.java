@@ -37,12 +37,16 @@ public class EntryController {
      
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    public void postEntry(Entry entry, @Context SecurityContext securityContext) {
+    public Entry postEntry(Entry entry, @Context SecurityContext securityContext) {
     	log.info("POST for new entry");
     	
-    	entryService.saveEntry(entry.getText(), entry.getDate(), entry.getImages(),
+    	int id = entryService.saveEntry(entry.getText(), entry.getDate(), entry.getImages(),
                                ((MookPrincipal)securityContext.getUserPrincipal()).getId());
 
     	log.info("Inserted new entry from {}", securityContext.getUserPrincipal().getName());
+
+    	entry.setId(id);
+    	entry.setAuthor(((MookPrincipal)securityContext.getUserPrincipal()).getDisplayName());
+    	return entry;
    }
 }

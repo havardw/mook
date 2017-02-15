@@ -82,7 +82,7 @@ public class EntryService {
 
                 log.info("Saved new entry ID {} with {} image(s)", entryId, images.size());
             } else {
-                log.info("Saved new entry ID {} without images");
+                log.info("Saved new entry ID {} without images", entryId);
             }
 
             con.commit();
