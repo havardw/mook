@@ -13,6 +13,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class BeanProducer {
@@ -51,6 +53,13 @@ public class BeanProducer {
         config.setPassword(getRequiredProperty("mook.db.password"));
 
         return new HikariDataSource(config);
+    }
+
+    @Produces
+    @Singleton
+    @Named("thumbnailExecutor")
+    ExecutorService thumbnailExecutor() {
+        return Executors.newFixedThreadPool(Integer.parseInt(properties.getProperty("mook.image.threads", "2")));
     }
 
     private String getRequiredProperty(String key) {

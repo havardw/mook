@@ -19,6 +19,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.*;
 import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Data service for images.
@@ -40,11 +44,15 @@ public class ImageService {
 
     private final DataSource ds;
 
+    /** Executor service for thumbnails. */
+    private final ExecutorService resizeExecutor;
+
 
     @Inject
-    public ImageService(@Named("imagePath") String basePath, DataSource ds) {
+    public ImageService(@Named("imagePath") String basePath, DataSource ds, @Named("thumbnailExecutor") ExecutorService executor) {
         this.basePath = basePath;
         this.ds = ds;
+        this.resizeExecutor = executor;
     }
 
     public Image saveImage(byte[] data, int userId) throws IOException {
@@ -144,13 +152,21 @@ public class ImageService {
 
                 int originalSize = getImageMaxDimension(name);
                 if (originalSize >= size) {
-                    log.info("Creating resized image size {} for {}", size, name);
-                    Thumbnails.of(original.toFile()).size(size, size).asFiles(resized.getParent().toFile(), Rename.NO_CHANGE);
+                    log.info("Added resize to queue size {} for {}", size, name);
+                    // Run resize in executor queue so that we don't use all available memory
+                    Future<Void> imageResize = resizeExecutor.submit((Callable<Void>) () -> {
+                        log.info("Creating resized image size {} for {}", size, name);
+                        Thumbnails.of(original.toFile()).size(size, size).asFiles(resized.getParent().toFile(), Rename.NO_CHANGE);
+                        return null;
+                    });
+
+                    // Wait for completion
+                    imageResize.get();
                 } else {
                     log.info("Image {} has size {}, using original for size {}", name, originalSize, size);
                     Files.copy(original, resized);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new RuntimeException("Failed to resize image", e);
             }
         }

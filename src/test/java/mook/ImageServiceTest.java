@@ -32,7 +32,7 @@ public class ImageServiceTest {
     @Before
     public void setUp() throws Exception {
         base = Files.createTempDirectory("ImageServiceTest");
-        service = new ImageService(base.toString(), ds);
+        service = new ImageService(base.toString(), ds, null);
 
     }
 
