@@ -59,7 +59,8 @@ class Image extends Component {
 }
 
 Image.propTypes = {
-    userData: React.PropTypes.object.isRequired
+    userData: React.PropTypes.object.isRequired,
+    image: React.PropTypes.object.isRequired
 };
 
 export default Image;

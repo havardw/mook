@@ -70,7 +70,7 @@ div.loading::before {
     margin-top: 1rem;
 }
 
-.entry-buttons > button { /* Affects first button only in current layout. */
+.entry-buttons > input[type="submit"] { /* Affects first button only in current layout. */
     margin-right: 3rem;
 }
 
@@ -166,7 +166,7 @@ img.upload {
         padding: 0.5em;
     }
 
-    .entry-buttons > button {
+    .entry-buttons > input[type=submit] {
         margin-right: 1rem;
     }
 }

@@ -1,6 +1,7 @@
-import React, { Component } from "react";
+import React, { Component, PropTypes } from "react";
 import axios from "axios";
 import Image from "./Image";
+import EntryEditor from "./EntryEditor";
 
 function Entry(props) {
 
@@ -68,7 +69,7 @@ class Entries extends Component {
         this.state = {entries: null};
 
         this.load = this.load.bind(this);
-
+        this.handleEntryAdded = this.handleEntryAdded.bind(this);
 
     }
 
@@ -92,11 +93,13 @@ class Entries extends Component {
                     }
                 });
                 this.setState({entries: response.data});
-            }).catch(error => {
-                console.error(error);
-                this.props.onHttpError(error);
-            }
-        );
+            }, this.props.onHttpError);
+    }
+
+    handleEntryAdded(entry) {
+        let entries = this.state.entries;
+        entries = [ entry ].concat(entries);
+        this.setState({entries: entries});
     }
 
     render() {
@@ -108,15 +111,21 @@ class Entries extends Component {
             );
 
             return (
-                <div>{entries}</div>
+                <div>
+                    <h2>Skriv en melding</h2>
+
+                    <EntryEditor userData={this.props.userData} onHttpError={this.props.onHttpError} onEntryAdded={this.handleEntryAdded} />
+
+                    <div>{entries}</div>
+                </div>
             );
         }
     }
 }
 
 Entries.propTypes = {
-    userData: React.PropTypes.object.isRequired,
-    onHttpError: React.PropTypes.func.isRequired
+    userData: PropTypes.object.isRequired,
+    onHttpError: PropTypes.func.isRequired
 };
 
 
