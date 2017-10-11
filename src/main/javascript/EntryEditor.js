@@ -14,10 +14,14 @@ function createNewEntry() {
 
 // Date object's isoDate doesn't use time zone, and Firefox Mobile doesn't support Intl API.
 function isoDate(date) {
-    let month = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
-    let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
+    if (date instanceof Date) {
+        let month = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
+        let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
 
-    return date.getFullYear() + "-" + month + "-" + day;
+        return date.getFullYear() + "-" + month + "-" + day;
+    } else {
+        return date;
+    }
 }
 
 class EntryEditor extends Component {
