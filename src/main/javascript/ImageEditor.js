@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-
+import PropTypes from "prop-types";
 import Image from "./Image";
 
 class ImageEditor extends Image {
@@ -48,11 +48,11 @@ class ImageEditor extends Image {
 }
 
 ImageEditor.propTypes = {
-    image: React.PropTypes.object.isRequired,
-    index: React.PropTypes.number.isRequired,
-    userData: React.PropTypes.object.isRequired,
-    onCaptionChange: React.PropTypes.func.isRequired,
-    onRemove: React.PropTypes.func.isRequired
+    image: PropTypes.object.isRequired,
+    index: PropTypes.number.isRequired,
+    userData: PropTypes.object.isRequired,
+    onCaptionChange: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired
 };
 
 export default ImageEditor;

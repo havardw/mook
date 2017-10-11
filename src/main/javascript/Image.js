@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import PropTypes from "prop-types";
 import axios from "axios";
 
 class Image extends Component {
@@ -59,8 +60,8 @@ class Image extends Component {
 }
 
 Image.propTypes = {
-    userData: React.PropTypes.object.isRequired,
-    image: React.PropTypes.object.isRequired
+    userData: PropTypes.object.isRequired,
+    image: PropTypes.object.isRequired
 };
 
 export default Image;
