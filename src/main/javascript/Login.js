@@ -57,7 +57,7 @@ class Login extends Component {
                         <p><label htmlFor="password">Passord</label>
                             <input type="password" id="password" value={this.state.password} onChange={this.handlePasswordChange}/></p>
                     </div>
-                    <p><input type="checkbox" id="remember" value={this.state.remember} onChange={this.handleRememberChange} /> <label htmlFor="remember">Husk innlogging</label></p>
+                    <p><input type="checkbox" id="remember" checked={this.state.remember} onChange={this.handleRememberChange} /> <label htmlFor="remember">Husk innlogging</label></p>
 
                     <div className="error">{this.state.error}</div>
 
