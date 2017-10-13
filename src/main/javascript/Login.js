@@ -53,11 +53,11 @@ class Login extends Component {
                 <form onSubmit={this.handleSubmit}>
                     <div className="grid">
                         <p><label htmlFor="email">E-post</label>
-                            <input type="email" autoFocus="autofocus" value={this.state.email} onChange={this.handleEmailChange} /></p>
+                            <input type="email" id="email" autoFocus="autofocus" value={this.state.email} onChange={this.handleEmailChange} /></p>
                         <p><label htmlFor="password">Passord</label>
-                            <input type="password" value={this.state.password} onChange={this.handlePasswordChange}/></p>
+                            <input type="password" id="password" value={this.state.password} onChange={this.handlePasswordChange}/></p>
                     </div>
-                    <p><input type="checkbox" value={this.state.remember} onChange={this.handleRememberChange} /> <label htmlFor="remember">Husk innlogging</label></p>
+                    <p><input type="checkbox" id="remember" value={this.state.remember} onChange={this.handleRememberChange} /> <label htmlFor="remember">Husk innlogging</label></p>
 
                     <div className="error">{this.state.error}</div>
 
