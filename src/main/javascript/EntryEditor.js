@@ -58,7 +58,12 @@ class EntryEditor extends Component {
     }
 
     save() {
-        window.localStorage.setItem("mook.entry.autosave", JSON.stringify(this.state.entry));
+        // Only save entry if we have content, else we mess up the date when opening the app later
+        if (this.state.entry.text !== "" || this.state.entry.images.lenght > 0) {
+            window.localStorage.setItem("mook.entry.autosave", JSON.stringify(this.state.entry));
+        } else {
+            window.localStorage.removeItem("mook.entry.autosave");
+        }
     }
 
     handleDateChange(event) {
