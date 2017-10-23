@@ -4,6 +4,8 @@ import axios from "axios";
 import Login from "./Login";
 import Entries from "./Entries";
 
+require('es6-promise/auto');
+
 class MookApp extends Component {
 
     constructor(props) {
