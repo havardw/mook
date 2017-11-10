@@ -19,17 +19,19 @@ public class ConfigControllerTest {
 
         ConfigController controller = new ConfigController(config);
 
-        Map<String, Object> result = controller.config();
+        String result = controller.config();
 
-        assertThat(result).containsEntry("name", "Test");
-        assertThat(result).containsEntry("prefix", "test");
+        assertThat(result).startsWith("var mookConfig = {");
+        assertThat(result).contains("\"name\":\"Test\"");
+        assertThat(result).contains("\"prefix\":\"test\"");
     }
 
     @Test
     public void defaultConfig() throws Exception {
         ConfigController controller = new ConfigController(new Properties());
-        Map<String, Object> result = controller.config();
-        assertThat(result).containsEntry("name", "Mook");
-        assertThat(result).containsEntry("prefix", "default");
+        String result = controller.config();
+
+        assertThat(result).contains("\"name\":\"Mook\"");
+        assertThat(result).contains("\"prefix\":\"default\"");
     }
 }
