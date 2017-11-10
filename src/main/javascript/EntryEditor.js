@@ -5,6 +5,8 @@ import axios from "axios";
 import ImageEditor from "./ImageEditor";
 import ImageUpload from "./ImageUpload";
 
+const ENTRY_AUTOSAVE_KEY = "mook." + mookConfig.prefix + ".entry.autosave";
+
 function createNewEntry() {
     return {
         date: new Date(),
@@ -30,7 +32,15 @@ class EntryEditor extends Component {
     constructor(props) {
         super(props);
 
+        // Check auto save, and transition from old format
         let autoSave = window.localStorage.getItem("mook.entry.autosave");
+        if (autoSave !== null) {
+            window.localStorage.removeItem("mook.entry.autosave");
+            window.localStorage.setItem(ENTRY_AUTOSAVE_KEY, autoSave);
+        } else {
+            autoSave = window.localStorage.getItem(ENTRY_AUTOSAVE_KEY);
+        }
+
         let entry;
         if (autoSave !== null) {
             entry = JSON.parse(autoSave);
@@ -60,9 +70,9 @@ class EntryEditor extends Component {
     save() {
         // Only save entry if we have content, else we mess up the date when opening the app later
         if (this.state.entry.text !== "" || this.state.entry.images.lenght > 0) {
-            window.localStorage.setItem("mook.entry.autosave", JSON.stringify(this.state.entry));
+            window.localStorage.setItem(ENTRY_AUTOSAVE_KEY, JSON.stringify(this.state.entry));
         } else {
-            window.localStorage.removeItem("mook.entry.autosave");
+            window.localStorage.removeItem(ENTRY_AUTOSAVE_KEY);
         }
     }
 

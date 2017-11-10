@@ -6,6 +6,8 @@ import Entries from "./Entries";
 
 require('es6-promise/auto');
 
+const USER_DATA_KEY = "mook." + mookConfig.prefix + ".userData";
+
 class MookApp extends Component {
 
     constructor(props) {
@@ -14,15 +16,33 @@ class MookApp extends Component {
         // Check for supported browser
         let supportedBrowser = (!!(window.ProgressEvent)) && (!!(window.FormData)); // Checks for XHR 2
 
-        // Check for saved login
-        let loginState = "unauthorized";
+
+        // Check for saved login, legacy format first, convert to new format if found
         let userData = window.sessionStorage.getItem("mook.userData");
-        if (userData === null) {
+        if (userData !== null) {
+            window.sessionStorage.removeItem("mook.userData");
+            window.sessionStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
+        } else {
             userData = window.localStorage.getItem("mook.userData");
+            if (userData !== null) {
+                window.localStorage.removeItem("mook.userData");
+                window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
+            }
         }
+        // Check for new format
+        if (userData === null) {
+            userData = window.sessionStorage.getItem(USER_DATA_KEY);
+            if (userData === null) {
+                userData = window.localStorage.getItem(USER_DATA_KEY)
+            }
+        }
+
+        let loginState;
         if (userData !== null) {
             loginState = "restore";
             userData = JSON.parse(userData);
+        } else {
+            loginState = "unauthorized";
         }
 
 
@@ -49,9 +69,9 @@ class MookApp extends Component {
 
     handleLogin(userData, rememberLogin) {
         if (rememberLogin) {
-            window.localStorage.setItem("mook.userData", JSON.stringify(userData));
+            window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
         } else {
-            window.sessionStorage.setItem("mook.userData", JSON.stringify(userData));
+            window.sessionStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
         }
 
         this.setState({userData: userData, loginState: "loggedIn"});
