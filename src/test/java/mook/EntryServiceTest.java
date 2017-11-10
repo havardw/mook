@@ -9,7 +9,7 @@ import javax.sql.DataSource;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for EntryService.
@@ -38,11 +38,11 @@ public class EntryServiceTest {
         int id = service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(1, null, "Test")), 7);
 
         Map<String, Object> entry = TestDatabase.querySingleRow(ds, "entry", "id", id);
-        assertEquals("Entry", entry.get("entrytext"));
+        assertThat(entry.get("entrytext")).isEqualTo("Entry");
 
         Map<String, Object> image = TestDatabase.querySingleRow(ds, "image", "id", 1);
-        assertEquals(id, image.get("entryid"));
-        assertEquals("Test", image.get("caption"));
+        assertThat(image.get("entryid")).isEqualTo(id);
+        assertThat(image.get("caption")).isEqualTo("Test");
     }
 
     @Test(expected = IllegalStateException.class)

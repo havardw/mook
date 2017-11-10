@@ -10,8 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static com.jcabi.matchers.RegexMatchers.matchesPattern;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for ImageService.
@@ -49,9 +48,9 @@ public class ImageServiceTest {
 
         Image result = service.saveImage(img, 2);
 
-        assertThat(result.getName(), matchesPattern("\\d+\\.png"));
+        assertThat(result.getName()).matches("\\d+\\.png");
         Path imgPath = Paths.get(base.toString(), "original", result.getName());
-        assertTrue(String.format("Path '%s' does not exist", imgPath), Files.exists(imgPath));
+        assertThat(imgPath).exists();
     }
 
     @Test
@@ -61,9 +60,9 @@ public class ImageServiceTest {
 
         Image result = service.saveImage(img, 2);
 
-        assertThat(result.getName(), matchesPattern("\\d+\\.jpg"));
+        assertThat(result.getName()).matches("\\d+\\.jpg");
         Path imgPath = Paths.get(base.toString(), "original", result.getName());
-        assertTrue(String.format("Path '%s' does not exist", imgPath), Files.exists(imgPath));
+        assertThat(imgPath).exists();
     }
 
 

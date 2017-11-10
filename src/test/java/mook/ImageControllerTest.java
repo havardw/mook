@@ -13,7 +13,7 @@ import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -50,8 +50,8 @@ public class ImageControllerTest {
 
         Response response = controller.postImage(new byte[28], mockSecurityContext, mockUriInfo);
 
-        assertEquals(201, response.getStatus());
-        assertEquals("/unittest/api/image/42.jpg", response.getHeaderString("Location"));
-        assertEquals(42, ((Image)response.getEntity()).getId());
+        assertThat(response.getStatus()).isEqualTo(201);
+        assertThat(response.getHeaderString("Location")).isEqualTo("/unittest/api/image/42.jpg");
+        assertThat(((Image)response.getEntity()).getId()).isEqualTo(42);
     }
 }
