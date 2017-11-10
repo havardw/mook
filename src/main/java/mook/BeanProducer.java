@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,5 +77,11 @@ public class BeanProducer {
     @Named("imagePath")
     String imagePath() {
         return getRequiredProperty("mook.image.path");
+    }
+
+    @Produces
+    @Named("config")
+    Properties config() {
+        return properties;
     }
 }
