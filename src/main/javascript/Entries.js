@@ -4,6 +4,9 @@ import axios from "axios";
 import Image from "./Image";
 import EntryEditor from "./EntryEditor";
 
+/** Page size for entry data requests. */
+const PAGE_SIZE = 10;
+
 function Entry(props) {
 
     const images = props.entry.images.map((image) => <Image key={image.id} image={image} userData={props.userData} />);
@@ -67,22 +70,33 @@ class Entries extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {entries: null};
+        this.state = {entries: [], loading: false, offset: 0, complete: false};
 
         this.load = this.load.bind(this);
         this.handleEntryAdded = this.handleEntryAdded.bind(this);
-
+        this.handleScroll = this.handleScroll.bind(this);
     }
 
     componentDidMount() {
+        window.addEventListener('scroll', this.handleScroll);
         this.load();
     }
 
+    componentWillUnmount() {
+        window.removeEventListener('scroll', this.handleScroll);
+    };
+
     load() {
-        console.info("Loading entries");
-        axios.get("api/entry", { headers: { auth: this.props.userData.token }})
+        console.info("Loading entries from offset " + this.state.offset);
+        this.setState({loading: true});
+        axios.get("api/entry?limit=" + PAGE_SIZE + "&offset=" + this.state.offset, { headers: { auth: this.props.userData.token }})
             .then(response => {
-                // Reverse sort for date
+                if (response.data.length === 0) {
+                    this.setState({loading: false, complete: true});
+                    return;
+                }
+
+                // Reverse sort from server to get newest first
                 response.data.sort(function(a, b) {
                     if (a.date > b.date) {
                         return -1;
@@ -93,7 +107,25 @@ class Entries extends Component {
                         return b.id - a.id;
                     }
                 });
-                this.setState({entries: response.data});
+
+                // Flag duplicates, e.g. if an entry was written after page was loaded
+                // Duplicates should be at the start of the sorted array
+                let index = 0;
+                while (index < response.data[index].length &&
+                       this.state.entries.some(entry => entry.id === response.data[index].id)) {
+                    console.log("Removing duplicate ID " + response.data[index].id);
+                    index++;
+                }
+
+                // Merge old and new entries, skip duplicates
+                let mergedEntries = this.state.entries.concat(response.data.slice(index));
+
+                // Assume that data is complete if we get fewer entries than we asked for
+                let complete = response.data.length < PAGE_SIZE;
+                this.setState({entries: mergedEntries,
+                               loading: false,
+                               offset: this.state.offset + PAGE_SIZE,
+                               complete: complete});
             }, this.props.onHttpError);
     }
 
@@ -103,24 +135,34 @@ class Entries extends Component {
         this.setState({entries: entries});
     }
 
-    render() {
-        if (this.state.entries === null) {
-            return (<div className="loading" style={{marginTop: 2 + 'em'}}>Henter logg</div>);
-        } else {
-            const entries = this.state.entries.map((entry) =>
-               <Entry key={entry.id} entry={entry} userData={this.props.userData} />
-            );
-
-            return (
-                <div>
-                    <h2>Skriv en melding</h2>
-
-                    <EntryEditor userData={this.props.userData} onHttpError={this.props.onHttpError} onEntryAdded={this.handleEntryAdded} />
-
-                    <div>{entries}</div>
-                </div>
-            );
+    handleScroll() {
+        if (!this.state.complete && !this.state.loading) {
+            // Find length of remaining content. "scrollheight" is total document length, "scrollTop"
+            // is current position, and "innerHeight" is viewport size.
+            let remaining = document.documentElement.scrollHeight - document.documentElement.scrollTop - window.innerHeight;
+            if (remaining < 1000) {
+                console.log("Triggering new load on scroll");
+                this.load();
+            }
         }
+    }
+
+    render() {
+        const entries = this.state.entries.map((entry) =>
+           <Entry key={entry.id} entry={entry} userData={this.props.userData} />
+        );
+
+        return (
+            <div onScroll={this.handleScroll}>
+                <h2>Skriv en melding</h2>
+
+                <EntryEditor userData={this.props.userData} onHttpError={this.props.onHttpError} onEntryAdded={this.handleEntryAdded} />
+
+                <div id="entryContainer">{entries}</div>
+
+                {this.state.loading && <div className="loading" style={{marginTop: 2 + 'em'}}>Henter logg</div>}
+            </div>
+        );
     }
 }
 
