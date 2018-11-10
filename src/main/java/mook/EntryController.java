@@ -8,7 +8,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
-import java.util.List;
 
 @Path("entry")
 @Slf4j
@@ -23,10 +22,24 @@ public class EntryController {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public Collection<Entry> getEntries() {
-    	log.info("Request for entries");
+    public Collection<Entry> getEntries(@QueryParam("limit") Integer limit, @QueryParam("offset") Integer offset) {
+    	log.info("Request for {} entries from offset {}", limit, offset);
+
+    	int verifiedLimit;
+    	if (limit == null || limit < 0) {
+    	    verifiedLimit = 20;
+        } else {
+    	    verifiedLimit = limit;
+        }
+
+        int verifiedOffset;
+    	if (offset == null || offset < 0) {
+    	    verifiedOffset = 0;
+        } else {
+    	    verifiedOffset = offset;
+        }
     
-        Collection<Entry> entries = entryService.getEntries();
+        Collection<Entry> entries = entryService.getEntries(verifiedOffset, verifiedLimit);
     
     	log.info("Returned {} entries", entries.size());
 

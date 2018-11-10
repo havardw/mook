@@ -21,28 +21,32 @@ public class EntryService {
         this.ds = ds;
     }
 
-    public Collection<Entry> getEntries() {
+    public Collection<Entry> getEntries(int offset, int limit) {
         Map<Integer, Entry> result = new HashMap<>();
 
         try (Connection con = ds.getConnection())  {
             ResultSet rs = con.createStatement().executeQuery("SELECT e.id, e.entrydate, e.entryText, u.name " +
                                                               "FROM entry e,user u WHERE e.userId = u.id " +
-                                                              "ORDER BY e.entrydate DESC LIMIT 30");
+                                                              "ORDER BY e.entrydate DESC, id DESC " +
+                                                              "LIMIT " + limit + " OFFSET " + offset);
             while (rs.next()) {
                 int id = rs.getInt("e.id");
                 result.put(id, new Entry(id, rs.getString("u.name"), rs.getString("e.entrytext"), rs.getDate("e.entrydate")));
             }
 
-            String ids = result.keySet().stream().map(i -> Integer.toString(i)).collect(Collectors.joining(", "));
+            // May get an empty result with an offset larger than item count
+            if (!result.isEmpty()) {
+                String ids = result.keySet().stream().map(i -> Integer.toString(i)).collect(Collectors.joining(", "));
 
-            rs = con.createStatement().executeQuery(String.format("select * from image where entryId in (%s)", ids));
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                Image img = new Image(id,
-                                      id + "." + ImageService.extensionFromMimeType(rs.getString("mimeType")),
-                                      rs.getString("caption"));
-                int entryId = rs.getInt("entryId");
-                result.get(entryId).getImages().add(img);
+                rs = con.createStatement().executeQuery(String.format("select * from image where entryId in (%s)", ids));
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    Image img = new Image(id,
+                            id + "." + ImageService.extensionFromMimeType(rs.getString("mimeType")),
+                            rs.getString("caption"));
+                    int entryId = rs.getInt("entryId");
+                    result.get(entryId).getImages().add(img);
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Query for entries failed", e);
