@@ -1,36 +1,21 @@
-var webpack = require("webpack");
-var path = require("path");
-var failPlugin = require('webpack-fail-plugin');
-
-var PACKAGE = require("./package.json");
-var SRC_DIR = path.resolve(__dirname, "src/main/javascript");
-var BUILD_DIR = path.resolve(__dirname, "target/mook-" + PACKAGE.version + "/js");
-
-
-var config = {
-    entry: SRC_DIR + "/index.js",
+module.exports = {
+    entry: "./src/main/javascript/index.js",
     output: {
-        path: BUILD_DIR,
-        filename: "bundle.js"
+        filename: "bundle.js",
+        path: __dirname + "/target/webpack/js"
     },
-    module : {
-        loaders : [
+
+    module: {
+        rules: [
             {
-                test : /\.js/,
-                include : SRC_DIR,
-                loader : "babel"
+                test: /\.js$/,
+                use: {
+                    loader: "babel-loader",
+                    options: {
+                        presets: ["@babel/preset-env", "@babel/preset-react"]
+                    }
+                }
             }
         ]
-    },
-    plugins: [
-        failPlugin,
-        function() {
-            this.plugin('watch-run', function(watching, callback) {
-                console.log('Begin compile at ' + new Date());
-                callback();
-            })
-        }
-    ]
+    }
 };
-
-module.exports = config;

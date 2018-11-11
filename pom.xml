@@ -202,6 +202,9 @@
                                 <include>index.html</include>
                             </includes>
                         </resource>
+                        <resource>
+                            <directory>target/webpack</directory>
+                        </resource>
                     </webResources>
                 </configuration>
             </plugin>
@@ -216,6 +219,10 @@
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
+                        <configuration>
+                            <nodeVersion>v10.13.0</nodeVersion>
+                            <npmVersion>6.4.1</npmVersion>
+                        </configuration>
                     </execution>
 
                     <execution>
@@ -236,11 +243,6 @@
                         </configuration>
                     </execution>
                 </executions>
-
-                <configuration>
-                    <nodeVersion>v6.9.2</nodeVersion>
-                </configuration>
-
             </plugin>
 
             <plugin>
@@ -274,6 +276,11 @@
                             <value>${basedir}/dev.properties</value>
                         </systemProperty>
                     </systemProperties>
+                    <webAppConfig>
+                        <baseResource implementation="org.eclipse.jetty.util.resource.ResourceCollection">
+                            <resourcesAsCSV>src/main/webapp,target/webpack</resourcesAsCSV>
+                        </baseResource>
+                    </webAppConfig>
                 </configuration>
 
                 <dependencies>
