@@ -96,6 +96,19 @@ class Entries extends Component {
                     return;
                 }
 
+                // Assume that data is complete if we get fewer entries than we asked for
+                let complete = response.data.length < PAGE_SIZE;
+
+                // Remove duplicates, e.g. if an entry was written after page was loaded
+                // Loop from the end to avoid problems with re-indexing array
+                let i = response.data.length;
+                while (i--) {
+                    if (this.state.entries.some(entry => entry.id === response.data[i].id)) {
+                        console.log("Removing duplicate ID " + response.data[i].id);
+                        response.data.splice(i, 1);
+                    }
+                }
+
                 // Reverse sort from server to get newest first
                 response.data.sort(function(a, b) {
                     if (a.date > b.date) {
@@ -108,20 +121,9 @@ class Entries extends Component {
                     }
                 });
 
-                // Flag duplicates, e.g. if an entry was written after page was loaded
-                // Duplicates should be at the start of the sorted array
-                let index = 0;
-                while (index < response.data[index].length &&
-                       this.state.entries.some(entry => entry.id === response.data[index].id)) {
-                    console.log("Removing duplicate ID " + response.data[index].id);
-                    index++;
-                }
+                // Merge old and new entries
+                let mergedEntries = this.state.entries.concat(response.data);
 
-                // Merge old and new entries, skip duplicates
-                let mergedEntries = this.state.entries.concat(response.data.slice(index));
-
-                // Assume that data is complete if we get fewer entries than we asked for
-                let complete = response.data.length < PAGE_SIZE;
                 this.setState({entries: mergedEntries,
                                loading: false,
                                offset: this.state.offset + PAGE_SIZE,
