@@ -7,11 +7,11 @@
     "watch": "webpack -d --watch"
   },
   "dependencies": {
-    "es6-promise": "4.1.1",
-    "axios": "0.16.2",
-    "prop-types": "15.6.0",
-    "react": "16.0.0",
-    "react-dom": "16.0.0"
+    "es6-promise": "^4.2.5",
+    "axios": "^0.18.0",
+    "prop-types": "^15.6.2",
+    "react": "^16.6.1",
+    "react-dom": "^16.6.1"
   },
   "devDependencies": {
     "@babel/core": "7.1.5",
