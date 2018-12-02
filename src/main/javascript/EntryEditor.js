@@ -128,11 +128,10 @@ class EntryEditor extends Component {
         this.setState({uploads: this.state.uploads.concat(uploads)});
     }
 
-    handleImageUploaded(image, index) {
+    handleImageUploaded(image, fileName) {
         console.info("Image uploaded", image);
 
-        let uploads = this.state.uploads.slice();
-        uploads.splice(index, 1);
+        let uploads = this.state.uploads.filter(u => u.file.name !== fileName);
 
         let images = this.state.entry.images.concat(image);
 
@@ -190,7 +189,7 @@ class EntryEditor extends Component {
                                                                                 onCaptionChange={this.handleCaptionChange}
                                                                                 onRemove={this.handleRemoveImage}/>);
 
-        let uploads = this.state.uploads.map((upload, index) => <ImageUpload key={index} file={upload.file} index={index}
+        let uploads = this.state.uploads.map((upload, index) => <ImageUpload key={index} file={upload.file}
                                                                              userData={this.props.userData}
                                                                              onImageUpload={this.handleImageUploaded}
                                                                              onUploadFailed={this.handleUploadFailed}/>);

@@ -39,7 +39,7 @@ class ImageUpload extends Component {
         axios.post("api/image", this.props.file, config)
             .then((response) => {
                 console.log("Image uploaded: " + JSON.stringify(response.data));
-                this.props.onImageUpload(response.data, this.props.index);
+                this.props.onImageUpload(response.data, this.props.file.name);
             },
             (error) => {
                 console.log("Upload error", error);
@@ -47,7 +47,7 @@ class ImageUpload extends Component {
                 if (retry) {
                     this.upload();
                 } else {
-                    this.props.onUploadFailed(error, this.props.index);
+                    this.props.onUploadFailed(error, this.props.file);
                 }
             });
     }
@@ -69,7 +69,6 @@ class ImageUpload extends Component {
 
 ImageUpload.propTypes = {
     file: PropTypes.object.isRequired,
-    index: PropTypes.number.isRequired,
     userData: PropTypes.object.isRequired,
     onUploadFailed: PropTypes.func.isRequired,
     onImageUpload: PropTypes.func.isRequired
