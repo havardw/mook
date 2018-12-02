@@ -26,18 +26,16 @@ class ImageEditor extends Image {
     }
 
     componentWillReceiveProps(nextProps) {
-        console.info("ImageEditor.componentWillReceiveProps", nextProps);
         this.setState({caption: nextProps.image.caption || ""});
     }
 
 
     render() {
-        console.info("State in render: ", this.state);
         return (
             <div className="image">
                 <div className="wrapper">
                     <img src={this.state.url} />
-                    <img className="close" src="img/close.svg" width="20" height="20" onClick={this.handleRemove} />
+                    <img className="close" src="img/close.svg" alt="Slett bilde" width="20" height="20" onClick={this.handleRemove} />
                 </div>
 
                 <textarea value={this.state.caption} onChange={this.handleCaptionChange}
