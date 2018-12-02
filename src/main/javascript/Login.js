@@ -23,7 +23,7 @@ class Login extends Component {
     }
 
     handleRememberChange(event) {
-        this.setState({remember: event.target.value});
+        this.setState({remember: event.target.checked});
     }
 
 
