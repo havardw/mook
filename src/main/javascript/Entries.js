@@ -139,9 +139,9 @@ class Entries extends Component {
 
     handleScroll() {
         if (!this.state.complete && !this.state.loading) {
-            // Find length of remaining content. "scrollheight" is total document length, "scrollTop"
+            // Find length of remaining content. "scrollheight" is total document length, "pageYOffset"
             // is current position, and "innerHeight" is viewport size.
-            let remaining = document.documentElement.scrollHeight - document.documentElement.scrollTop - window.innerHeight;
+            let remaining = document.documentElement.scrollHeight - window.pageYOffset - window.innerHeight;
             if (remaining < 1000) {
                 console.log("Triggering new load on scroll");
                 this.load();
