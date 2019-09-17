@@ -16,7 +16,7 @@
         <jersey.version>2.27</jersey.version>
         <jetty.versjon>9.3.6.v20151106</jetty.versjon> <!-- Same version as Condi -->
         <logback.version>1.2.3</logback.version>
-        <weld.version>2.2.16.SP1</weld.version> <!-- Can't get newer versions to work with Jetty version. -->
+        <weld.version>2.4.8.Final</weld.version>
     </properties>
 
     <dependencies>
@@ -281,6 +281,7 @@
                             <resourcesAsCSV>src/main/webapp,target/webpack</resourcesAsCSV>
                         </baseResource>
                     </webAppConfig>
+                    <contextXml>src/main/webapp/WEB-INF/jetty-web.xml</contextXml>
                 </configuration>
 
                 <dependencies>
