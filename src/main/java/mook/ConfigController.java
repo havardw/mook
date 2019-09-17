@@ -33,6 +33,7 @@ public class ConfigController {
         Map<String, Object> map = new HashMap<>();
         map.put("name", config.getProperty("mook.name", "Mook"));
         map.put("prefix", config.getProperty("mook.prefix", "default"));
+        map.put("googleId", config.getProperty("google.clientId"));
 
         StringWriter stringWriter = new StringWriter();
         JsonFactory factory = new JsonFactory(new ObjectMapper());

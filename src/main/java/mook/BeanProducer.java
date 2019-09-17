@@ -84,4 +84,11 @@ public class BeanProducer {
     Properties config() {
         return properties;
     }
+
+    @Produces
+    @Named("Google client ID")
+    String googleClientId() {
+        return getRequiredProperty("google.clientId");
+    }
+
 }

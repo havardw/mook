@@ -6,7 +6,7 @@
 
     <groupId>net.wigtil</groupId>
     <artifactId>mook</artifactId>
-    <version>0.3.4-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>Mook</name>
 
@@ -25,6 +25,12 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.25</version>
         </dependency>
 
         <dependency>
@@ -136,6 +142,18 @@
             <groupId>net.coobird</groupId>
             <artifactId>thumbnailator</artifactId>
             <version>0.4.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.30.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Compile only -->

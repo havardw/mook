@@ -28,7 +28,20 @@ public class LoginController {
             AuthenticationData auth = authService.login(data);
             return Response.ok().entity(auth).build();
         } catch (AuthenticationException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            return Response.status(Response.Status.UNAUTHORIZED).entity(fromException(e)).build();
+        }
+    }
+    
+    @POST
+    @Path("google-id")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response verifyGoogleId(GoogleId id) {
+        try {
+            AuthenticationData auth = authService.verifyGoogleLogin(id.getTokenId());
+            return Response.ok().entity(auth).build();
+        } catch (AuthenticationException e) {
+            return Response.status(Response.Status.UNAUTHORIZED).entity(fromException(e)).build();
         }
     }
     
@@ -40,7 +53,18 @@ public class LoginController {
         if (authService.isAuthenticated(data.getToken())) {
             return Response.ok().entity(authService.getAuthenticationData(data.token)).build();
         } else {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+            AuthenticationError error = new AuthenticationError(AuthenticationError.SESSION_EXPIRED);
+            return Response.status(Response.Status.UNAUTHORIZED).entity(error).build();
+        }
+    }
+
+    private static AuthenticationError fromException(AuthenticationException e) {
+        switch (e.getReason()) {
+            case PASSWORD_MISMATCH: return new AuthenticationError(AuthenticationError.PASSWORD_MISMATCH);
+            case OAUTH_NOT_REGISTERED: return new AuthenticationError(AuthenticationError.OAUTH_NOT_REGISTERED);
+            case OAUTH_CONFIG: return new AuthenticationError(AuthenticationError.OAUTH_CONFIG_ERROR);
+            default:
+                return new AuthenticationError(AuthenticationError.UNKNOWN_ERROR);
         }
     }
 }
