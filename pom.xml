@@ -6,7 +6,7 @@
 
     <groupId>net.wigtil</groupId>
     <artifactId>mook</artifactId>
-    <version>0.3.4</version>
+    <version>0.3.5-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>Mook</name>
 
