@@ -3,10 +3,13 @@ import axios from "axios";
 
 import Login from "./Login";
 import Entries from "./Entries";
+import {parseQuery} from "./utils";
 
 require('es6-promise/auto');
 
 const USER_DATA_KEY = "mook." + mookConfig.prefix + ".userData";
+
+export const OAUTH_STATE_KEY = "mook." + mookConfig.prefix + ".oauthState";
 
 class MookApp extends Component {
 
@@ -38,11 +41,36 @@ class MookApp extends Component {
         }
 
         let loginState;
+        let oidcAccessToken;
+        let rememberOidcLogin = false;
         if (userData !== null) {
             loginState = "restore";
             userData = JSON.parse(userData);
         } else {
-            loginState = "unauthorized";
+            let fragment = window.location.hash;
+            if (fragment && fragment.length > 1) {
+                let params = parseQuery(fragment.substring(1));
+
+                if (params.hasOwnProperty("access_token") && params.hasOwnProperty("state")) {
+                    // Remove fragment from URL
+                    history.pushState(null, null, window.location.pathname + window.location.search);
+
+                    let storedState = window.sessionStorage.getItem(OAUTH_STATE_KEY);
+                    window.sessionStorage.removeItem(OAUTH_STATE_KEY);
+                    if (storedState === params["state"]) {
+                        loginState = "oidc";
+                        oidcAccessToken = params["access_token"];
+                        rememberOidcLogin = params["state"].endsWith("_remember");
+                    } else {
+                        console.log("OICD state mismatch. Stored: '" + storedState + "', received: '" + params["state"] + "'");
+                        loginState = "unauthorized";
+                    }
+                } else {
+                    loginState = "unauthorized";
+                }
+            } else {
+                loginState = "unauthorized";
+            }
         }
 
 
@@ -50,7 +78,10 @@ class MookApp extends Component {
             userData: userData,
             loginState: loginState,
             globalError: null,
-            supportedBrowser: supportedBrowser
+            oidcError: null,
+            supportedBrowser: supportedBrowser,
+            oidcAccessToken: oidcAccessToken,
+            rememberOidcLogin: rememberOidcLogin
         };
 
 
@@ -63,7 +94,26 @@ class MookApp extends Component {
         if (this.state.loginState === "restore") {
             axios.post("api/resumeSession", {token: this.state.userData.token})
                 .then(response => this.setState({userData: response.data, loginState: "loggedIn"}))
-                .catch(error => this.handleHttpError(error))
+                .catch(error => this.handleHttpError(error));
+        } else if (this.state.loginState === "oidc") {
+            axios.post("api/oidc-login", {accessToken: this.state.oidcAccessToken})
+                .then(response => {
+                    this.setState({rememberOidcLogin: undefined, oidcAccessToken: undefined});
+                    this.handleLogin(response.data, this.state.rememberOidcLogin);
+                })
+                .catch(error => {
+                    if (error.response && error.response.status === 401) {
+                        this.setState({globalError: null,
+                            loginState: "unauthorized",
+                            oidcError: {
+                                code: error.response.data.errorCode,
+                                email: error.response.data.email
+                            }
+                        });
+                    } else {
+                        this.handleHttpError(error);
+                    }
+                })
         }
     }
 
@@ -108,8 +158,8 @@ class MookApp extends Component {
                 </div>
             );
         } else if (this.state.loginState === "unauthorized") {
-            return (<Login onLogin={this.handleLogin} />);
-        } else if (this.state.loginState === "resume") {
+            return (<Login onLogin={this.handleLogin} oidcError={this.state.oidcError} />);
+        } else if (this.state.loginState === "resume" || this.state.loginState === "oidc") {
             return (<em>Vent litt...</em>);
         }
         else {

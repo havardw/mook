@@ -16,7 +16,7 @@
         <jersey.version>2.27</jersey.version>
         <jetty.versjon>9.3.6.v20151106</jetty.versjon> <!-- Same version as Condi -->
         <logback.version>1.2.3</logback.version>
-        <weld.version>2.4.8.Final</weld.version>
+        <weld.version>2.2.16.SP1</weld.version> <!-- Can't get newer versions to work with Jetty version. -->
     </properties>
 
     <dependencies>
@@ -123,6 +123,12 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+
         <!-- CDI -->
         <dependency>
             <groupId>org.jboss.weld.servlet</groupId>
@@ -142,18 +148,6 @@
             <groupId>net.coobird</groupId>
             <artifactId>thumbnailator</artifactId>
             <version>0.4.8</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.api-client</groupId>
-            <artifactId>google-api-client</artifactId>
-            <version>1.30.2</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <!-- Compile only -->
@@ -299,7 +293,6 @@
                             <resourcesAsCSV>src/main/webapp,target/webpack</resourcesAsCSV>
                         </baseResource>
                     </webAppConfig>
-                    <contextXml>src/main/webapp/WEB-INF/jetty-web.xml</contextXml>
                 </configuration>
 
                 <dependencies>

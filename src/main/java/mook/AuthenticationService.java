@@ -1,21 +1,22 @@
 package mook;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.Response;
 import java.sql.*;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 @Singleton
@@ -59,47 +60,52 @@ public class AuthenticationService {
         }
     }
 
-    public AuthenticationData verifyGoogleLogin(String tokenId) {
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
-                // Specify the CLIENT_ID of the app that accesses the backend:
-                .setAudience(Collections.singletonList(googleClientId))
-                // Or, if multiple clients access the backend:
-                //.setAudience(Arrays.asList(CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3))
-                .build();
-
-        log.debug("Google ID token: {}", tokenId);
+    public AuthenticationData verifyOidc(String accessToken) {
+        String email;
         try {
-            GoogleIdToken idToken = verifier.verify(tokenId);
+            Client client = ClientBuilder.newClient();
+            WebTarget target = client.target("https://openidconnect.googleapis.com/v1/userinfo");
+            Invocation.Builder request = target.request();
+            request.header("Authorization", "Bearer " + accessToken);
 
-            String email = idToken.getPayload().getEmail();
-            log.info("Verified Google login for {}", email);
-
-            // Get user data
-            try (Connection con = dataSource.getConnection()) {
-                try (PreparedStatement ps = con.prepareStatement("select id, name from user where email=?")) {
-                    ps.setString(1, email);
-
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next()) {
-                            return createSession(con, rs.getInt("id"), email, rs.getString("name"));
-                        } else {
-                            log.warn("Google user {} not in database", email);
-                            throw new AuthenticationException(AuthenticationException.Reason.OAUTH_NOT_REGISTERED);
-                        }
-                    }
-                }
-            } catch (SQLException se) {
-                throw new RuntimeException("Database error", se);
+            Response response = request.get();
+            if (response.getStatusInfo().getFamily() != Response.Status.Family.SUCCESSFUL) {
+                log.error("Received status " + response.getStatus() + " from userinfo: " + response.readEntity(String.class));
+                throw new AuthenticationException(AuthenticationException.Reason.UNKNOWN);
             }
-        } catch (GeneralSecurityException e) {
-            log.error("Security exception from Google token verify", e);
-            throw new AuthenticationException(AuthenticationException.Reason.OAUTH_CONFIG);
-        } catch (IOException e) {
+
+            Map<String, Object> result =  response.readEntity(new GenericType<Map<String, Object>>() { });
+
+            if (!result.containsKey("email")) {
+                log.error("No email in userinfo response: " + result);
+                throw new AuthenticationException(AuthenticationException.Reason.OAUTH_CONFIG);
+            }
+
+            email = result.get("email").toString();
+        } catch (ProcessingException e) {
             log.warn("IO exception from Google token verify", e);
             throw new AuthenticationException(AuthenticationException.Reason.NETWORK);
         }
 
+        log.info("Verified OIDC login for {}", email);
 
+        // Get user data
+        try (Connection con = dataSource.getConnection()) {
+            try (PreparedStatement ps = con.prepareStatement("select id, name from user where email=?")) {
+                ps.setString(1, email);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return createSession(con, rs.getInt("id"), email, rs.getString("name"));
+                    } else {
+                        log.warn("OIDC user {} not in database", email);
+                        throw new AuthenticationException(AuthenticationException.Reason.OAUTH_NOT_REGISTERED, email);
+                    }
+                }
+            }
+        } catch (SQLException se) {
+            throw new RuntimeException("Database error", se);
+        }
     }
 
     private AuthenticationData createSession(Connection con, int userId, String email, String name) throws SQLException {

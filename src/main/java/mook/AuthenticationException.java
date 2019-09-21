@@ -4,13 +4,24 @@ public class AuthenticationException extends RuntimeException {
 
     private final Reason reason;
 
-    public AuthenticationException(Reason reason) {
+    private final String email;
+
+    public AuthenticationException(Reason reason, String email) {
         super(reason.name());
         this.reason = reason;
+        this.email = email;
+    }
+
+    public AuthenticationException(Reason reason) {
+        this(reason, null);
     }
 
     public Reason getReason() {
         return reason;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public enum Reason {

@@ -1,20 +1,22 @@
 import React, { Component } from "react";
 import axios from "axios";
-import { GoogleLogin } from 'react-google-login';
+import {randomString} from "./utils";
+import {OAUTH_STATE_KEY} from "./MookApp";
 
 class Login extends Component {
 
     constructor(props) {
         super(props);
 
-        this.state = {email: "", password: "", remember: true, passwordError: null, oauthError: null};
+        this.state = {email: "", password: "", remember: true, rememberOidc: false, passwordError: null};
 
         this.handleEmailChange = this.handleEmailChange.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
         this.handleRememberChange = this.handleRememberChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
-        this.verifyGoogleLogin = this.verifyGoogleLogin.bind(this);
-        this.handleGoogleLoginError = this.handleGoogleLoginError.bind(this);
+        this.oidcInit = this.oidcInit.bind(this);
+        this.formatOidcError = this.formatOidcError.bind(this);
+        this.handleRememberOidcChange = this.handleRememberOidcChange.bind(this);
     }
 
     handleEmailChange(event) {
@@ -27,6 +29,10 @@ class Login extends Component {
 
     handleRememberChange(event) {
         this.setState({remember: event.target.checked});
+    }
+
+    handleRememberOidcChange(event) {
+        this.setState({rememberOidc: event.target.checked});
     }
 
 
@@ -52,41 +58,58 @@ class Login extends Component {
             });
     }
 
-    verifyGoogleLogin(response) {
-        axios.post("api/google-id", {tokenId: response.tokenId})
-            .then(response => this.props.onLogin(response.data, this.state.remember))
-            .catch(error => {
-                if (error.response.status === 401) {
-                    let reason = error.response.data.errorCode;
-                    if (reason === "oauth.not.registered") {
-                        this.setState({oauthError: "E-postadressen din er ikke registrert. Ta kontakt med administrator."})
-                    } else if (reason === "oauth.config.error") {
-                        this.setState({oauthError: "Teknisk feil med innlogging. Ta kontakt med administrator."})
-                    } else {
-                        this.setState({oauthError: "Ukjent feil med innloging. Prøv igjen, og ta kontakt med administrator hvis det vedvarer."})
-                    }
-                } else {
-                    console.warn("Google login error: " + error.message);
-                    this.setState({oauthError: "Ukjent feil."});
-                }
-            });
+    oidcInit() {
+        let random = randomString();
+
+        if (this.state.rememberOidc) {
+            random += "_remember";
+        }
+
+        window.sessionStorage.setItem(OAUTH_STATE_KEY, random);
+
+        let authUrl = "https://accounts.google.com/o/oauth2/v2/auth?client_id="
+            + mookConfig.googleId
+            + "&response_type=token%20id_token"
+            + "&scope=openid%20email"
+            + "&redirect_uri=" + window.location
+            + "&state=" + random
+            + "&nonce=" + randomString(); // Not used by Mook
+
+        console.log("Redirecting to OIDC URL " + authUrl);
+
+        window.location = authUrl;
     }
 
-    handleGoogleLoginError(response) {
-        console.log("Google login error", response);
-        if (response.error === "popup_closed_by_user" || response.error === "access_denied") {
-            this.setState({oauthError: "Innlogging ble avbrutt."});
-        } else if (response.error === "idpiframe_initialization_failed") {
-            this.setState({oauthError: "Tekniske problemer med Google-innlogging, ta kontakt med administrator."})
+    formatOidcError() {
+        if (!this.props.oidcError) {
+            return null;
+        } else if  (this.props.oidcError.code === "oauth.not.registered") {
+            return (<span>E-postadressen <strong>{this.props.oidcError.email}</strong> er ikke
+                registrert. Sjekk at du har logget inn med riktig konto, eller ta kontakt med administrator.</span>);
+        } else if (this.props.oidcError.code === "oauth.config.error") {
+            return <span>Teknisk feil med innlogging. Ta kontakt med administrator.</span>;
         } else {
-            this.setState({oauthError: "Ukjent feil."});
+            return <span>Ukjent feil med innloging. Prøv igjen, og ta kontakt med administrator hvis det vedvarer.</span>;
         }
     }
 
     render() {
+        let oidcError = this.formatOidcError();
         return (
             <div>
+                <h1>Logg inn med Google</h1>
+                <p>Logg inn med din Google-konto for Trondheim kommune, eller Gmail-konto.</p>
+                <p>
+                    <input type="checkbox" id="rememberOidc" checked={this.state.rememberOidc} onChange={this.handleRememberOidcChange} />
+                    <label htmlFor="rememberOidc">Husk innlogging</label>
+                </p>
+                <p>
+                    <button onClick={this.oidcInit}>Logg inn</button>
+                </p>
+                {oidcError && <p className="error">{oidcError}</p>}
+
                 <h1>Brukernavn og passord</h1>
+                <p>Logg inn med brukernavn og passord.</p>
                 <form onSubmit={this.handleSubmit}>
                     <div className="grid">
                         <p><label htmlFor="email">E-post</label>
@@ -100,17 +123,6 @@ class Login extends Component {
 
                     <p><input type="submit" value="Logg inn" /></p>
                 </form>
-
-                <h1>Google-konto</h1>
-                <p>
-                    <GoogleLogin
-                        clientId={mookConfig.googleId}
-                        buttonText="Logg inn med Google-konto"
-                        onSuccess={this.verifyGoogleLogin}
-                        onFailure={this.handleGoogleLoginError}
-                    />
-                </p>
-                <p className="error">{this.state.oauthError}</p>
             </div>
         )
     }

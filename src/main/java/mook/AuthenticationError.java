@@ -13,4 +13,10 @@ public class AuthenticationError {
     public static final String UNKNOWN_ERROR          = "unknown.error";
 
     private String errorCode;
+
+    private String email;
+
+    public AuthenticationError(String errorCode) {
+        this.errorCode = errorCode;
+    }
 }

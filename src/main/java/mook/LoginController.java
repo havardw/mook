@@ -33,12 +33,12 @@ public class LoginController {
     }
     
     @POST
-    @Path("google-id")
+    @Path("oidc-login")
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response verifyGoogleId(GoogleId id) {
+    public Response verifyoicd(OidcLogin oidc) {
         try {
-            AuthenticationData auth = authService.verifyGoogleLogin(id.getTokenId());
+            AuthenticationData auth = authService.verifyOidc(oidc.getAccessToken());
             return Response.ok().entity(auth).build();
         } catch (AuthenticationException e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(fromException(e)).build();
@@ -61,7 +61,7 @@ public class LoginController {
     private static AuthenticationError fromException(AuthenticationException e) {
         switch (e.getReason()) {
             case PASSWORD_MISMATCH: return new AuthenticationError(AuthenticationError.PASSWORD_MISMATCH);
-            case OAUTH_NOT_REGISTERED: return new AuthenticationError(AuthenticationError.OAUTH_NOT_REGISTERED);
+            case OAUTH_NOT_REGISTERED: return new AuthenticationError(AuthenticationError.OAUTH_NOT_REGISTERED, e.getEmail());
             case OAUTH_CONFIG: return new AuthenticationError(AuthenticationError.OAUTH_CONFIG_ERROR);
             default:
                 return new AuthenticationError(AuthenticationError.UNKNOWN_ERROR);
