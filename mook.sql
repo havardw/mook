@@ -11,7 +11,7 @@ CREATE TABLE user (
   id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   name varchar(40) NOT NULL,
   email varchar(191) NOT NULL,
-  hash varchar(191) NOT NULL,
+  hash varchar(191),
   UNIQUE (email)
 );
 
