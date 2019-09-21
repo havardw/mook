@@ -1,2 +1,2 @@
 -- Allow hash to be null
-alter table user modify hash varchar(255);
+alter table user modify hash varchar(191);
