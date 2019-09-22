@@ -24,6 +24,13 @@ export class ImageLoader extends React.Component<ImageLoaderProps, ImageLoaderSt
         this.load();
     }
 
+
+    componentWillUnmount(): void {
+        if (this.state.url.indexOf("blob:") === 0) { // No "startsWith" in IE11
+            window.URL.revokeObjectURL(this.state.url);
+        }
+    }
+
     load = () => {
         let config: AxiosRequestConfig = {
             headers: {
