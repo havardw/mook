@@ -183,12 +183,12 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
     }
 
     render() {
-        let images = this.state.entry.images.map((image, index) => <ImageEditor key={index} image={image} index={index}
+        let images = this.state.entry.images.map((image, index) => <ImageEditor key={image.id} image={image} index={index}
                                                                                 userData={this.props.userData}
                                                                                 onCaptionChange={this.handleCaptionChange}
                                                                                 onRemove={this.handleRemoveImage}/>);
 
-        let imageUploads = this.state.uploads.map((upload, index) => <ImageUpload key={index} file={upload}
+        let imageUploads = this.state.uploads.map((upload) => <ImageUpload key={upload.name} file={upload}
                                                                              userData={this.props.userData}
                                                                              onImageUpload={this.handleImageUploaded}
                                                                              onUploadFailed={this.handleUploadFailed}/>);
