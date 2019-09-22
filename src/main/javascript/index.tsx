@@ -5,6 +5,7 @@ import MookApp from "./MookApp";
 window.addEventListener("DOMContentLoaded",
     function() {
         console.log("Loading app");
+        document.getElementById("applicationName").innerHTML = mookConfig.name;
         ReactDOM.render(
             <MookApp />,
             document.getElementById("root")
