@@ -72,7 +72,10 @@ class MookApp extends React.Component<{}, ApplicationState> {
                     if (storedState === params["state"]) {
                         loginState = "oidc";
                         oidcAccessToken = params["access_token"];
-                        rememberOidcLogin = params["state"].endsWith("_remember");
+
+                        // IE11 doesn't support endsWith
+                        let end = params["state"].substring(params["state"].length - 9);
+                        rememberOidcLogin = end === "_remember";
                     } else {
                         console.log("OICD state mismatch. Stored: '" + storedState + "', received: '" + params["state"] + "'");
                         loginState = "unauthorized";

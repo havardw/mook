@@ -1,12 +1,19 @@
 
 export function randomString() {
+    let crypto = window.crypto;
+    if (!crypto) {
+        // Needed for IE11, IE10 and earlier are not supported
+        crypto = (window as any).msCrypto;
+    }
+
     let array = new Uint32Array(10);
-    window.crypto.getRandomValues(array);
+    crypto.getRandomValues(array);
 
     let str = "";
-    array.forEach(function (uint) {
-        str += uint.toString(36);
-    });
+    for (let i = 0; i < array.length; i++) { // Uint32Array doesn't support forEach in IE11
+        str += array[i].toString(36);
+    }
+
     return str;
 }
 
