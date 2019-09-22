@@ -1,8 +1,20 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import Image from "./Image";
+import * as React from "react";
+import {AuthenticationData, Image as ImageData} from "./domain";
+import {ImageLoader} from "./ImageLoader";
 
-class ImageEditor extends Image {
+interface ImageEditorProps {
+    image: ImageData,
+    index: number;
+    userData: AuthenticationData;
+    onCaptionChange(value: string, index: number): void;
+    onRemove(index: number): void;
+}
+
+interface ImageEditorState {
+    caption: string;
+}
+
+class ImageEditor extends React.Component<ImageEditorProps, ImageEditorState> {
 
     constructor(props) {
         super(props);
@@ -34,23 +46,15 @@ class ImageEditor extends Image {
         return (
             <div className="image">
                 <div className="wrapper">
-                    <img src={this.state.url} />
+                    <ImageLoader userData={this.props.userData} image={this.props.image} />
                     <img className="close" src="img/close.svg" alt="Slett bilde" width="20" height="20" onClick={this.handleRemove} />
                 </div>
 
                 <textarea value={this.state.caption} onChange={this.handleCaptionChange}
-                          rows="3" placeholder="Beskriv bildet hvis du vil" />
+                          rows={3} placeholder="Beskriv bildet hvis du vil" />
             </div>
         );
     }
 }
-
-ImageEditor.propTypes = {
-    image: PropTypes.object.isRequired,
-    index: PropTypes.number.isRequired,
-    userData: PropTypes.object.isRequired,
-    onCaptionChange: PropTypes.func.isRequired,
-    onRemove: PropTypes.func.isRequired
-};
 
 export default ImageEditor;

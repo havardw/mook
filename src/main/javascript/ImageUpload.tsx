@@ -1,8 +1,20 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import axios from "axios";
+import * as React from "react";
+import axios, {AxiosError} from "axios";
+import {AuthenticationData, Image} from "./domain";
 
-class ImageUpload extends Component {
+interface ImageUploadProps {
+    userData: AuthenticationData;
+    file: File;
+    onUploadFailed(error: AxiosError, file: File): void;
+    onImageUpload(image: Image, name: string): void;
+}
+
+interface ImageUploadState {
+    url: string;
+    percentage: number;
+}
+
+class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
 
     constructor(props) {
         super(props);
@@ -66,12 +78,5 @@ class ImageUpload extends Component {
         )
     }
 }
-
-ImageUpload.propTypes = {
-    file: PropTypes.object.isRequired,
-    userData: PropTypes.object.isRequired,
-    onUploadFailed: PropTypes.func.isRequired,
-    onImageUpload: PropTypes.func.isRequired
-};
 
 export default ImageUpload;

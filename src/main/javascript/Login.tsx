@@ -1,16 +1,33 @@
-import React, { Component } from "react";
+import * as React from "react";
 import axios from "axios";
 import {randomString} from "./utils";
 import {OAUTH_STATE_KEY} from "./MookApp";
+import {AuthenticationData} from "./domain";
 
-class Login extends Component {
+interface LoginProps {
+    onLogin(data: AuthenticationData, remember: boolean): void;
+    oidcError?: {
+        code: string;
+        email: string;
+    }
+}
+
+interface LoginState {
+    email: string;
+    password: string;
+    remember: boolean;
+    rememberOidc: boolean;
+    passwordError?: string
+}
+
+class Login extends React.Component<LoginProps, LoginState> {
 
     constructor(props) {
         super(props);
 
-        this.state = {email: "", password: "", remember: true, rememberOidc: false, passwordError: null};
+        this.state = {email: "", password: "", remember: true, rememberOidc: false};
 
-        this.handleEmailChange = this.handleEmailChange.bind(this);
+        this.handleEmailChange = this.handleEmailChange.bind(this); // TODO Fat arrow
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
         this.handleRememberChange = this.handleRememberChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -52,7 +69,7 @@ class Login extends Component {
                             this.setState({passwordError: "Ukjent feil"})
                         }
                     } else {
-                        this.setState({passwordError: "Ukjent feil (" + response.status + ")"});
+                        this.setState({passwordError: "Ukjent feil (" + error.response.status + ")"});
                     }
                 }
             });
@@ -77,7 +94,7 @@ class Login extends Component {
 
         console.log("Redirecting to OIDC URL " + authUrl);
 
-        window.location = authUrl;
+        window.location.href = authUrl;
     }
 
     formatOidcError() {
@@ -113,7 +130,7 @@ class Login extends Component {
                 <form onSubmit={this.handleSubmit}>
                     <div className="grid">
                         <p><label htmlFor="email">E-post</label>
-                            <input type="email" id="email" autoFocus="autofocus" value={this.state.email} onChange={this.handleEmailChange} /></p>
+                            <input type="email" id="email" autoFocus={true} value={this.state.email} onChange={this.handleEmailChange} /></p>
                         <p><label htmlFor="password">Passord</label>
                             <input type="password" id="password" value={this.state.password} onChange={this.handlePasswordChange}/></p>
                     </div>

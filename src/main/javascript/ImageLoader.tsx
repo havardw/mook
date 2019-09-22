@@ -1,25 +1,31 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import axios from "axios";
+import * as React from "react";
+import axios, {AxiosRequestConfig} from "axios";
+import {AuthenticationData, Image as ImageData} from "./domain";
 
-class Image extends Component {
+interface ImageLoaderProps {
+    userData: AuthenticationData,
+    image: ImageData
+}
 
-    constructor(props) {
+
+interface ImageLoaderState {
+    url: string;
+}
+
+export class ImageLoader extends React.Component<ImageLoaderProps, ImageLoaderState> {
+
+
+    constructor(props: ImageLoaderProps) {
         super(props);
-
         this.state = {url: "img/ajax-loader.gif"};
-
-        this.load = this.load.bind(this);
-
-
     }
 
     componentDidMount() {
         this.load();
     }
 
-    load() {
-        let config = {
+    load = () => {
+        let config: AxiosRequestConfig = {
             headers: {
                 auth: this.props.userData.token
             },
@@ -44,24 +50,16 @@ class Image extends Component {
                 console.warn("Failed to load image data: " + error.message);
                 this.setState({url: ""});
             });
-    }
+    };
 
-    render() {
-        return (
-            <div className="image">
-                <div className="wrapper">
-                    <img src={this.state.url} />
-                </div>
+    render(): React.ReactNode {
+        let alt;
+        if (this.props.image.caption) {
+            alt = "Bilde: " + this.props.image.caption;
+        } else {
+            alt = "Bilde uten beskrivelse";
+        }
 
-                <div className="caption">{this.props.image.caption}</div>
-            </div>
-        );
+        return <img src={this.state.url} alt={alt} />
     }
 }
-
-Image.propTypes = {
-    userData: PropTypes.object.isRequired,
-    image: PropTypes.object.isRequired
-};
-
-export default Image;

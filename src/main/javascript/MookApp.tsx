@@ -1,51 +1,63 @@
-import React, { Component } from "react";
+import * as React from "react";
 import axios from "axios";
 
 import Login from "./Login";
 import Entries from "./Entries";
 import {parseQuery} from "./utils";
+import {AuthenticationData} from "./domain";
 
-require('es6-promise/auto');
+import 'promise-polyfill/src/polyfill';
 
 const USER_DATA_KEY = "mook." + mookConfig.prefix + ".userData";
 
 export const OAUTH_STATE_KEY = "mook." + mookConfig.prefix + ".oauthState";
 
-class MookApp extends Component {
+interface ApplicationState {
+    loginState: string;
+    userData: AuthenticationData;
+    globalError: string;
+    supportedBrowser: boolean;
+    rememberOidcLogin?: boolean;
+    oidcAccessToken?: string;
+    oidcError?: {code: string; email: string}
+}
+
+class MookApp extends React.Component<{}, ApplicationState> {
 
     constructor(props) {
         super(props);
 
         // Check for supported browser
-        let supportedBrowser = (!!(window.ProgressEvent)) && (!!(window.FormData)); // Checks for XHR 2
+        let supportedBrowser = (!!((window as any).ProgressEvent)) && (!!((window as any).FormData)); // Checks for XHR 2
 
 
         // Check for saved login, legacy format first, convert to new format if found
-        let userData = window.sessionStorage.getItem("mook.userData");
-        if (userData !== null) {
+        let userDataStr = window.sessionStorage.getItem("mook.userData");
+        if (userDataStr !== null) {
             window.sessionStorage.removeItem("mook.userData");
-            window.sessionStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
+            window.sessionStorage.setItem(USER_DATA_KEY, JSON.stringify(userDataStr))
         } else {
-            userData = window.localStorage.getItem("mook.userData");
-            if (userData !== null) {
+            userDataStr = window.localStorage.getItem("mook.userData");
+            if (userDataStr !== null) {
                 window.localStorage.removeItem("mook.userData");
-                window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData))
+                window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userDataStr))
             }
         }
         // Check for new format
-        if (userData === null) {
-            userData = window.sessionStorage.getItem(USER_DATA_KEY);
-            if (userData === null) {
-                userData = window.localStorage.getItem(USER_DATA_KEY)
+        if (userDataStr === null) {
+            userDataStr = window.sessionStorage.getItem(USER_DATA_KEY);
+            if (userDataStr === null) {
+                userDataStr = window.localStorage.getItem(USER_DATA_KEY)
             }
         }
 
-        let loginState;
-        let oidcAccessToken;
+        let loginState: string;
+        let userData: AuthenticationData;
+        let oidcAccessToken: string;
         let rememberOidcLogin = false;
-        if (userData !== null) {
+        if (userDataStr !== null) {
             loginState = "restore";
-            userData = JSON.parse(userData);
+            userData = JSON.parse(userDataStr);
         } else {
             let fragment = window.location.hash;
             if (fragment && fragment.length > 1) {

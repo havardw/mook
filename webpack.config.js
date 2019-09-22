@@ -1,5 +1,5 @@
 module.exports = {
-    entry: "./src/main/javascript/index.js",
+    entry: "./src/main/javascript/index.tsx",
     output: {
         filename: "bundle.js",
         path: __dirname + "/target/webpack/js"
@@ -8,14 +8,13 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.js$/,
-                use: {
-                    loader: "babel-loader",
-                    options: {
-                        presets: ["@babel/preset-env", "@babel/preset-react"]
-                    }
-                }
+                test: /\.tsx?$/,
+                use: "ts-loader",
+                exclude: /node_modules/
             }
         ]
+    },
+    resolve: {
+        extensions: [".tsx", ".ts", ".js"]
     }
 };

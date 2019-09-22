@@ -1,13 +1,18 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import axios from "axios";
+import * as React from "react";
+import axios, {AxiosError} from "axios";
 import Image from "./Image";
 import EntryEditor from "./EntryEditor";
+import {AuthenticationData, Entry as EntryData} from "./domain";
 
 /** Page size for entry data requests. */
 const PAGE_SIZE = 10;
 
-function Entry(props) {
+interface EntryProps {
+    entry: EntryData;
+    userData: AuthenticationData;
+}
+
+function Entry(props: EntryProps) {
 
     const images = props.entry.images.map((image) => <Image key={image.id} image={image} userData={props.userData} />);
 
@@ -64,8 +69,19 @@ function friendlyDate(date) {
     }
 }
 
+interface EntriesProps {
+    userData: AuthenticationData;
+    onHttpError(error: AxiosError): void
+}
 
-class Entries extends Component {
+interface EntriesState {
+    offset: number;
+    entries: EntryData[];
+    loading: boolean;
+    complete: boolean;
+}
+
+class Entries extends React.Component<EntriesProps, EntriesState> {
 
     constructor(props) {
         super(props);
@@ -167,11 +183,5 @@ class Entries extends Component {
         );
     }
 }
-
-Entries.propTypes = {
-    userData: PropTypes.object.isRequired,
-    onHttpError: PropTypes.func.isRequired
-};
-
 
 export default Entries;

@@ -1,9 +1,9 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import axios from "axios";
+import * as React from "react";
+import axios, {AxiosError} from "axios";
 
 import ImageEditor from "./ImageEditor";
 import ImageUpload from "./ImageUpload";
+import {AuthenticationData, Entry} from "./domain";
 
 const ENTRY_AUTOSAVE_KEY = "mook." + mookConfig.prefix + ".entry.autosave";
 
@@ -27,7 +27,22 @@ function isoDate(date) {
     }
 }
 
-class EntryEditor extends Component {
+interface EntryEditorProps {
+    userData: AuthenticationData;
+    onHttpError(error: AxiosError): void;
+    onEntryAdded(entry: Entry): void;
+}
+
+
+interface EntryEditorState {
+    entry: Entry;
+    uploads: { file: File }[],
+    sending: boolean;
+}
+
+class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
+
+    private autoSaveTimer?: number;
 
     constructor(props) {
         super(props);
@@ -69,7 +84,7 @@ class EntryEditor extends Component {
 
     save() {
         // Only save entry if we have content, else we mess up the date when opening the app later
-        if (this.state.entry.text !== "" || this.state.entry.images.lenght > 0) {
+        if (this.state.entry.text !== "" || this.state.entry.images.length > 0) {
             window.localStorage.setItem(ENTRY_AUTOSAVE_KEY, JSON.stringify(this.state.entry));
         } else {
             window.localStorage.removeItem(ENTRY_AUTOSAVE_KEY);
@@ -202,7 +217,7 @@ class EntryEditor extends Component {
                            value={isoDate(this.state.entry.date)} onChange={this.handleDateChange} /></p>
                 <p><label htmlFor="text">Melding</label>
                     <textarea disabled={this.state.sending}
-                              rows="8" placeholder="Skriv en melding"
+                              rows={8} placeholder="Skriv en melding"
                               value={this.state.entry.text} onChange={this.handleTextChange} /></p>
                 {images}
 
@@ -229,12 +244,6 @@ class EntryEditor extends Component {
         clearInterval(this.autoSaveTimer);
     }
 }
-
-EntryEditor.propTypes = {
-    userData: PropTypes.object.isRequired,
-    onHttpError: PropTypes.func.isRequired,
-    onEntryAdded: PropTypes.func.isRequired
-};
 
 function showImageSelector(event) {
     event.preventDefault();
