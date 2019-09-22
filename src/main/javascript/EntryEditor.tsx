@@ -3,20 +3,20 @@ import axios, {AxiosError} from "axios";
 
 import ImageEditor from "./ImageEditor";
 import ImageUpload from "./ImageUpload";
-import {AuthenticationData, Entry} from "./domain";
+import {AuthenticationData, Entry, Image} from "./domain";
 
 const ENTRY_AUTOSAVE_KEY = "mook." + mookConfig.prefix + ".entry.autosave";
 
 function createNewEntry() {
     return {
-        date: new Date(),
+        date: isoDate(new Date()),
         text: "",
-        images: []
+        images: [] as Image[]
     };
 }
 
 // Date object's isoDate doesn't use time zone, and Firefox Mobile doesn't support Intl API.
-function isoDate(date) {
+function isoDate(date: Date | string) {
     if (date instanceof Date) {
         let month = date.getMonth() < 9 ? "0" + (date.getMonth() + 1) : date.getMonth() + 1;
         let day = date.getDate() < 10 ? "0" + date.getDate() : date.getDate();
@@ -36,7 +36,7 @@ interface EntryEditorProps {
 
 interface EntryEditorState {
     entry: Entry;
-    uploads: { file: File }[],
+    uploads: File[],
     sending: boolean;
 }
 
@@ -44,7 +44,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
     private autoSaveTimer?: number;
 
-    constructor(props) {
+    constructor(props: EntryEditorProps) {
         super(props);
 
         // Check auto save, and transition from old format
@@ -59,7 +59,6 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         let entry;
         if (autoSave !== null) {
             entry = JSON.parse(autoSave);
-            entry.date = new Date(entry.date);
         } else {
             entry = createNewEntry();
         }
@@ -80,19 +79,19 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         }
     };
 
-    handleDateChange = (event) => {
+    handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         let entry = this.state.entry;
         entry.date = event.target.value;
         this.setState({entry: entry});
     };
 
-    handleTextChange = (event) => {
+    handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         let entry = this.state.entry;
         entry.text = event.target.value;
         this.setState({entry: entry});
     };
 
-    handleCaptionChange = (text, index) => {
+    handleCaptionChange = (text: string, index: number) => {
         // TODO Immutable?
         let entry = this.state.entry;
         let image = entry.images[index];
@@ -100,7 +99,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         this.setState({entry: entry});
     };
 
-    handleSubmit = (event) => {
+    handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         console.info("Form submit");
         event.preventDefault();
         console.info("Entry ", this.state.entry);
@@ -117,22 +116,20 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
             });
     };
 
-    addImages = (event) => {
+    addImages = (event: React.ChangeEvent<HTMLInputElement>) => {
         let uploads = [];
         let files = event.target.files;
 
         console.info("Adding " + files.length + " images");
         for (let i = 0; i < files.length; i++) {
-            uploads.push({
-                file: files.item(i)
-            });
+            uploads.push(files.item(i));
         }
 
         this.setState({uploads: this.state.uploads.concat(uploads)});
     };
 
-    handleImageUploaded = (image, fileName) => {
-        let uploads = this.state.uploads.filter(u => u.file.name !== fileName);
+    handleImageUploaded = (image: Image, fileName: string) => {
+        let uploads = this.state.uploads.filter(u => u.name !== fileName);
 
         let images = this.state.entry.images.concat(image);
 
@@ -145,7 +142,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         this.setState({entry: entry, uploads: uploads});
     };
 
-    handleRemoveImage = (index) => {
+    handleRemoveImage = (index: number) => {
         let image = this.state.entry.images[index];
 
         let images = this.state.entry.images.slice();
@@ -166,8 +163,9 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
     };
 
-    handleUploadFailed = (error, index) => {
+    handleUploadFailed = (file: File) => {
         let uploads = this.state.uploads.slice();
+        let index = uploads.indexOf(file);
         uploads.splice(index, 1);
         this.setState({uploads: uploads});
     };
@@ -190,7 +188,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
                                                                                 onCaptionChange={this.handleCaptionChange}
                                                                                 onRemove={this.handleRemoveImage}/>);
 
-        let uploads = this.state.uploads.map((upload, index) => <ImageUpload key={index} file={upload.file}
+        let imageUploads = this.state.uploads.map((upload, index) => <ImageUpload key={index} file={upload}
                                                                              userData={this.props.userData}
                                                                              onImageUpload={this.handleImageUploaded}
                                                                              onUploadFailed={this.handleUploadFailed}/>);
@@ -210,7 +208,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
                               value={this.state.entry.text} onChange={this.handleTextChange} /></p>
                 {images}
 
-                {uploads}
+                {imageUploads}
 
                 <input type="file" accept="image/*" multiple={supportsMultiple} style={{display: 'none'}}
                        onChange={this.addImages}/>
@@ -227,17 +225,17 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
     startAutoSave = () => {
         this.autoSaveTimer = setInterval(this.save, 1000);
-    }
+    };
 
     stopAutoSave = () => {
         clearInterval(this.autoSaveTimer);
-    }
+    };
 }
 
-function showImageSelector(event) {
+function showImageSelector(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
-    let fileInput = event.target.parentElement.parentElement.querySelector("input[type='file']");
-    fileInput.click();
+    let fileInput = (event.target as Element).parentElement.parentElement.querySelector("input[type='file']");
+    (fileInput as HTMLButtonElement).click();
 }
 
 export default EntryEditor;

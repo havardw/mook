@@ -1,5 +1,5 @@
 import * as React from "react";
-import axios from "axios";
+import axios, {AxiosError} from "axios";
 
 import Login from "./Login";
 import Entries from "./Entries";
@@ -24,7 +24,7 @@ interface ApplicationState {
 
 class MookApp extends React.Component<{}, ApplicationState> {
 
-    constructor(props) {
+    constructor(props: {}) {
         super(props);
 
         // Check for supported browser
@@ -127,7 +127,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
         }
     }
 
-    handleLogin = (userData, rememberLogin) => {
+    handleLogin = (userData: AuthenticationData, rememberLogin: boolean): void => {
         if (rememberLogin) {
             window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
         } else {
@@ -137,7 +137,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
         this.setState({userData: userData, loginState: "loggedIn"});
     };
 
-    handleHttpError = (error) => {
+    handleHttpError = (error: AxiosError): void => {
         if (error.response === undefined) {
             this.setState({globalError: "Ingen nettverkskobling"});
         } else {

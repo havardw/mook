@@ -1,5 +1,5 @@
 
-export function randomString() {
+export function randomString(): string {
     let crypto = window.crypto;
     if (!crypto) {
         // Needed for IE11, IE10 and earlier are not supported
@@ -17,10 +17,10 @@ export function randomString() {
     return str;
 }
 
-export function parseQuery(queryString) {
-    let result = {};
+export function parseQuery(queryString: string): {[key: string]: string} {
+    let result: {[key: string]: string} = {};
     let pairs = queryString.split("&");
-    pairs.forEach(function(pair) {
+    pairs.forEach(pair => {
         let firstEquals = pair.indexOf("=");
         if (firstEquals === -1) {
             result[decodeURIComponent(pair)] = undefined;

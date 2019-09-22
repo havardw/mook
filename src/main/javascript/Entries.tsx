@@ -25,7 +25,7 @@ function Entry(props: EntryProps) {
     );
 }
 
-function friendlyDate(date) {
+function friendlyDate(date: string) {
     let inDate = new Date(date);
     inDate.setHours(0);
     inDate.setMinutes(0);
@@ -56,6 +56,7 @@ function friendlyDate(date) {
             case 4: return "Torsdag";
             case 5: return "Fredag";
             case 6: return "Lørdag";
+            default: throw new Error("8 days a week"); // Shouldn't happen, but needs to be here so that every path has a return
         }
     } else {
         // More than a week ago
@@ -83,7 +84,7 @@ interface EntriesState {
 
 class Entries extends React.Component<EntriesProps, EntriesState> {
 
-    constructor(props) {
+    constructor(props: EntriesProps) {
         super(props);
 
         this.state = {entries: [], loading: false, offset: 0, complete: false};
@@ -122,7 +123,7 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
                 }
 
                 // Reverse sort from server to get newest first
-                response.data.sort(function(a, b) {
+                response.data.sort((a: EntryData, b: EntryData) => {
                     if (a.date > b.date) {
                         return -1;
                     } else if (b.date > a.date) {
@@ -143,7 +144,7 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
             }, this.props.onHttpError);
     };
 
-    handleEntryAdded = (entry) => {
+    handleEntryAdded = (entry: EntryData) => {
         let entries = this.state.entries;
         entries = [ entry ].concat(entries);
         this.setState({entries: entries});

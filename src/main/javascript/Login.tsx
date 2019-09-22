@@ -22,30 +22,30 @@ interface LoginState {
 
 class Login extends React.Component<LoginProps, LoginState> {
 
-    constructor(props) {
+    constructor(props: LoginProps) {
         super(props);
 
         this.state = {email: "", password: "", remember: true, rememberOidc: false};
     }
 
-    handleEmailChange = (event) => {
+    handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({email: event.target.value});
     };
 
-    handlePasswordChange = (event) => {
+    handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({password: event.target.value});
     };
 
-    handleRememberChange = (event) => {
+    handleRememberChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({remember: event.target.checked});
     };
 
-    handleRememberOidcChange = (event) => {
+    handleRememberOidcChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({rememberOidc: event.target.checked});
     };
 
 
-    handleSubmit = (event) => {
+    handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         axios.post("api/login", { email: this.state.email, password: this.state.password})
             .then(response => this.props.onLogin(response.data, this.state.remember))

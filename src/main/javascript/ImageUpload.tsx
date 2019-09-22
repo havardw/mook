@@ -1,11 +1,11 @@
 import * as React from "react";
-import axios, {AxiosError} from "axios";
+import axios, {AxiosError, AxiosRequestConfig} from "axios";
 import {AuthenticationData, Image} from "./domain";
 
 interface ImageUploadProps {
     userData: AuthenticationData;
     file: File;
-    onUploadFailed(error: AxiosError, file: File): void;
+    onUploadFailed(file: File): void;
     onImageUpload(image: Image, name: string): void;
 }
 
@@ -16,7 +16,7 @@ interface ImageUploadState {
 
 class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
 
-    constructor(props) {
+    constructor(props: ImageUploadProps) {
         super(props);
 
         this.state = {
@@ -31,7 +31,7 @@ class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
     }
 
     upload = () => {
-        let config = {
+        let config: AxiosRequestConfig = {
             headers: {
                 auth: this.props.userData.token,
                 "Content-Type": "application/octet-stream"
@@ -55,10 +55,10 @@ class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
                 if (retry) {
                     this.upload();
                 } else {
-                    this.props.onUploadFailed(error, this.props.file);
+                    this.props.onUploadFailed(this.props.file);
                 }
             });
-    }
+    };
 
     render() {
         return (

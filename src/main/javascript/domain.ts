@@ -10,7 +10,7 @@ export interface Entry {
     id?: number;
     author?: string;
     text: string;
-    date: string | Date;
+    date: string;
     images: Image[];
 }
 

@@ -9,7 +9,7 @@ interface ImageProps {
 
 class Image extends React.Component<ImageProps, {}> {
 
-    constructor(props) {
+    constructor(props: ImageProps) {
         super(props);
     }
 

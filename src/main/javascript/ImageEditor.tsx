@@ -16,7 +16,7 @@ interface ImageEditorState {
 
 class ImageEditor extends React.Component<ImageEditorProps, ImageEditorState> {
 
-    constructor(props) {
+    constructor(props: ImageEditorProps) {
         super(props);
 
         let caption = props.image.caption === null ? "" : props.image.caption;
@@ -26,15 +26,15 @@ class ImageEditor extends React.Component<ImageEditorProps, ImageEditorState> {
         };
     }
 
-    handleCaptionChange = (event) => {
+    handleCaptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         this.props.onCaptionChange(event.target.value, this.props.index);
-    }
+    };
 
     handleRemove = () => {
         this.props.onRemove(this.props.index);
-    }
+    };
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps: ImageEditorProps) {
         this.setState({caption: nextProps.image.caption || ""});
     }
 
