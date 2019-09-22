@@ -98,11 +98,6 @@ class MookApp extends React.Component<{}, ApplicationState> {
             oidcAccessToken: oidcAccessToken,
             rememberOidcLogin: rememberOidcLogin
         };
-
-
-
-        this.handleLogin = this.handleLogin.bind(this);
-        this.handleHttpError = this.handleHttpError.bind(this);
     }
 
     componentDidMount() {
@@ -132,7 +127,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
         }
     }
 
-    handleLogin(userData, rememberLogin) {
+    handleLogin = (userData, rememberLogin) => {
         if (rememberLogin) {
             window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
         } else {
@@ -140,9 +135,9 @@ class MookApp extends React.Component<{}, ApplicationState> {
         }
 
         this.setState({userData: userData, loginState: "loggedIn"});
-    }
+    };
 
-    handleHttpError(error) {
+    handleHttpError = (error) => {
         if (error.response === undefined) {
             this.setState({globalError: "Ingen nettverkskobling"});
         } else {
@@ -153,7 +148,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
                 this.setState({globalError: "Ukjent feil"});
             }
         }
-    }
+    };
 
     render() {
         if (!this.state.supportedBrowser) {

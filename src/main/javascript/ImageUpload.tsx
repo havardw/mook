@@ -23,10 +23,6 @@ class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
             url: "img/ajax-loader.gif",
             percentage: 0
         };
-
-        this.upload = this.upload.bind(this);
-
-
     }
 
     componentDidMount() {
@@ -34,7 +30,7 @@ class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
         this.upload();
     }
 
-    upload() {
+    upload = () => {
         let config = {
             headers: {
                 auth: this.props.userData.token,

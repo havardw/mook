@@ -26,34 +26,26 @@ class Login extends React.Component<LoginProps, LoginState> {
         super(props);
 
         this.state = {email: "", password: "", remember: true, rememberOidc: false};
-
-        this.handleEmailChange = this.handleEmailChange.bind(this); // TODO Fat arrow
-        this.handlePasswordChange = this.handlePasswordChange.bind(this);
-        this.handleRememberChange = this.handleRememberChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.oidcInit = this.oidcInit.bind(this);
-        this.formatOidcError = this.formatOidcError.bind(this);
-        this.handleRememberOidcChange = this.handleRememberOidcChange.bind(this);
     }
 
-    handleEmailChange(event) {
+    handleEmailChange = (event) => {
         this.setState({email: event.target.value});
-    }
+    };
 
-    handlePasswordChange(event) {
+    handlePasswordChange = (event) => {
         this.setState({password: event.target.value});
-    }
+    };
 
-    handleRememberChange(event) {
+    handleRememberChange = (event) => {
         this.setState({remember: event.target.checked});
-    }
+    };
 
-    handleRememberOidcChange(event) {
+    handleRememberOidcChange = (event) => {
         this.setState({rememberOidc: event.target.checked});
-    }
+    };
 
 
-    handleSubmit(event) {
+    handleSubmit = (event) => {
         event.preventDefault();
         axios.post("api/login", { email: this.state.email, password: this.state.password})
             .then(response => this.props.onLogin(response.data, this.state.remember))
@@ -73,9 +65,9 @@ class Login extends React.Component<LoginProps, LoginState> {
                     }
                 }
             });
-    }
+    };
 
-    oidcInit() {
+    oidcInit = () => {
         let random = randomString();
 
         if (this.state.rememberOidc) {
@@ -95,9 +87,9 @@ class Login extends React.Component<LoginProps, LoginState> {
         console.log("Redirecting to OIDC URL " + authUrl);
 
         window.location.href = authUrl;
-    }
+    };
 
-    formatOidcError() {
+    formatOidcError = () => {
         if (!this.props.oidcError) {
             return null;
         } else if  (this.props.oidcError.code === "oauth.not.registered") {
@@ -108,7 +100,7 @@ class Login extends React.Component<LoginProps, LoginState> {
         } else {
             return <span>Ukjent feil med innloging. Prøv igjen, og ta kontakt med administrator hvis det vedvarer.</span>;
         }
-    }
+    };
 
     render() {
         let oidcError = this.formatOidcError();

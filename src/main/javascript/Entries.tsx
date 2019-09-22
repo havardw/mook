@@ -87,10 +87,6 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
         super(props);
 
         this.state = {entries: [], loading: false, offset: 0, complete: false};
-
-        this.load = this.load.bind(this);
-        this.handleEntryAdded = this.handleEntryAdded.bind(this);
-        this.handleScroll = this.handleScroll.bind(this);
     }
 
     componentDidMount() {
@@ -102,7 +98,7 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
         window.removeEventListener('scroll', this.handleScroll);
     };
 
-    load() {
+    load = () => {
         console.info("Loading entries from offset " + this.state.offset);
         this.setState({loading: true});
         axios.get("api/entry?limit=" + PAGE_SIZE + "&offset=" + this.state.offset, { headers: { auth: this.props.userData.token }})
@@ -145,15 +141,15 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
                                offset: this.state.offset + PAGE_SIZE,
                                complete: complete});
             }, this.props.onHttpError);
-    }
+    };
 
-    handleEntryAdded(entry) {
+    handleEntryAdded = (entry) => {
         let entries = this.state.entries;
         entries = [ entry ].concat(entries);
         this.setState({entries: entries});
-    }
+    };
 
-    handleScroll() {
+    handleScroll = () => {
         if (!this.state.complete && !this.state.loading) {
             // Find length of remaining content. "scrollheight" is total document length, "pageYOffset"
             // is current position, and "innerHeight" is viewport size.
@@ -163,7 +159,7 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
                 this.load();
             }
         }
-    }
+    };
 
     render() {
         const entries = this.state.entries.map((entry) =>

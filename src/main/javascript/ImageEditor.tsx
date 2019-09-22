@@ -24,16 +24,13 @@ class ImageEditor extends React.Component<ImageEditorProps, ImageEditorState> {
         this.state = {
             caption: caption
         };
-
-        this.handleCaptionChange = this.handleCaptionChange.bind(this);
-        this.handleRemove = this.handleRemove.bind(this);
     }
 
-    handleCaptionChange(event) {
+    handleCaptionChange = (event) => {
         this.props.onCaptionChange(event.target.value, this.props.index);
     }
 
-    handleRemove() {
+    handleRemove = () => {
         this.props.onRemove(this.props.index);
     }
 

@@ -69,49 +69,38 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
             uploads: [],
             sending: false
         };
-
-        this.save = this.save.bind(this);
-        this.handleDateChange = this.handleDateChange.bind(this);
-        this.handleTextChange = this.handleTextChange.bind(this);
-        this.handleCaptionChange = this.handleCaptionChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.addImages = this.addImages.bind(this);
-        this.handleImageUploaded = this.handleImageUploaded.bind(this);
-        this.handleUploadFailed = this.handleUploadFailed.bind(this);
-        this.handleRemoveImage = this.handleRemoveImage.bind(this);
-        this.isEmpty = this.isEmpty.bind(this);
     }
 
-    save() {
+    save = () => {
         // Only save entry if we have content, else we mess up the date when opening the app later
         if (this.state.entry.text !== "" || this.state.entry.images.length > 0) {
             window.localStorage.setItem(ENTRY_AUTOSAVE_KEY, JSON.stringify(this.state.entry));
         } else {
             window.localStorage.removeItem(ENTRY_AUTOSAVE_KEY);
         }
-    }
+    };
 
-    handleDateChange(event) {
+    handleDateChange = (event) => {
         let entry = this.state.entry;
         entry.date = event.target.value;
         this.setState({entry: entry});
-    }
+    };
 
-    handleTextChange(event) {
+    handleTextChange = (event) => {
         let entry = this.state.entry;
         entry.text = event.target.value;
         this.setState({entry: entry});
-    }
+    };
 
-    handleCaptionChange(text, index) {
+    handleCaptionChange = (text, index) => {
         // TODO Immutable?
         let entry = this.state.entry;
         let image = entry.images[index];
         image.caption = text;
         this.setState({entry: entry});
-    }
+    };
 
-    handleSubmit(event) {
+    handleSubmit = (event) => {
         console.info("Form submit");
         event.preventDefault();
         console.info("Entry ", this.state.entry);
@@ -126,9 +115,9 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
                 this.setState({sending: false});
                 this.props.onHttpError(error);
             });
-    }
+    };
 
-    addImages(event) {
+    addImages = (event) => {
         let uploads = [];
         let files = event.target.files;
 
@@ -140,9 +129,9 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         }
 
         this.setState({uploads: this.state.uploads.concat(uploads)});
-    }
+    };
 
-    handleImageUploaded(image, fileName) {
+    handleImageUploaded = (image, fileName) => {
         let uploads = this.state.uploads.filter(u => u.file.name !== fileName);
 
         let images = this.state.entry.images.concat(image);
@@ -154,9 +143,9 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         };
 
         this.setState({entry: entry, uploads: uploads});
-    }
+    };
 
-    handleRemoveImage(index) {
+    handleRemoveImage = (index) => {
         let image = this.state.entry.images[index];
 
         let images = this.state.entry.images.slice();
@@ -175,17 +164,17 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
                 console.warn("Failed to delete image", error);
             });
 
-    }
+    };
 
-    handleUploadFailed(error, index) {
+    handleUploadFailed = (error, index) => {
         let uploads = this.state.uploads.slice();
         uploads.splice(index, 1);
         this.setState({uploads: uploads});
-    }
+    };
 
-    isEmpty() {
+    isEmpty = () => {
         return this.state.entry.text === "" && this.state.entry.images.length === 0;
-    }
+    };
 
     componentDidMount() {
         this.startAutoSave();
@@ -236,11 +225,11 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         )
     }
 
-    startAutoSave() {
+    startAutoSave = () => {
         this.autoSaveTimer = setInterval(this.save, 1000);
     }
 
-    stopAutoSave() {
+    stopAutoSave = () => {
         clearInterval(this.autoSaveTimer);
     }
 }
