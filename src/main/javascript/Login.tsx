@@ -113,7 +113,7 @@ class Login extends React.Component<LoginProps, LoginState> {
                     <label htmlFor="rememberOidc">Husk innlogging</label>
                 </p>
                 <p>
-                    <button onClick={this.oidcInit}>Logg inn</button>
+                    <button onClick={this.oidcInit}>Logg inn med Google</button>
                 </p>
                 {oidcError && <p className="error">{oidcError}</p>}
 
@@ -130,7 +130,7 @@ class Login extends React.Component<LoginProps, LoginState> {
 
                     <div className="error">{this.state.passwordError}</div>
 
-                    <p><input type="submit" value="Logg inn" /></p>
+                    <p><input type="submit" value="Logg inn med passord" /></p>
                 </form>
             </div>
         )
