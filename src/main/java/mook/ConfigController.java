@@ -9,7 +9,6 @@ import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
@@ -34,6 +33,7 @@ public class ConfigController {
         map.put("name", config.getProperty("mook.name", "Mook"));
         map.put("prefix", config.getProperty("mook.prefix", "default"));
         map.put("googleId", config.getProperty("google.clientId"));
+        map.put("googleTargetUrl", config.getProperty("google.targetUrl"));
 
         StringWriter stringWriter = new StringWriter();
         JsonFactory factory = new JsonFactory(new ObjectMapper());

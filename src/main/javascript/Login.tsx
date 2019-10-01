@@ -80,7 +80,7 @@ class Login extends React.Component<LoginProps, LoginState> {
             + mookConfig.googleId
             + "&response_type=token%20id_token"
             + "&scope=openid%20email"
-            + "&redirect_uri=" + window.location
+            + "&redirect_uri=" + mookConfig.googleTargetUrl
             + "&state=" + random
             + "&nonce=" + randomString(); // Not used by Mook
 
