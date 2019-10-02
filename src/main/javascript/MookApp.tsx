@@ -104,7 +104,16 @@ class MookApp extends React.Component<{}, ApplicationState> {
         if (this.state.loginState === "restore") {
             axios.post("api/resumeSession", {token: this.state.userData.token})
                 .then(response => this.setState({userData: response.data, loginState: "loggedIn"}))
-                .catch(error => this.handleHttpError(error));
+                .catch(error =>   {
+                    if (error.response && error.response.status === 401) {
+                        console.log("Stored session is not valid");
+                        window.sessionStorage.removeItem(USER_DATA_KEY);
+                        window.localStorage.removeItem(USER_DATA_KEY);
+                        this.setState({globalError: null, loginState: "unauthorized"});
+                    } else {
+                        this.handleHttpError(error);
+                    }
+                });
         } else if (this.state.loginState === "oidc") {
             axios.post("api/oidc-login", {accessToken: this.state.oidcAccessToken})
                 .then(response => {
