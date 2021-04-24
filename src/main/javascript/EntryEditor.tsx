@@ -193,10 +193,6 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
                                                                              onImageUpload={this.handleImageUploaded}
                                                                              onUploadFailed={this.handleUploadFailed}/>);
 
-        // Firefox Mobile has a bug with multiple files that causes all files to fail.
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=1456557
-        let supportsMultiple = !(navigator.userAgent.indexOf("Firefox") !== -1 && navigator.userAgent.indexOf("Mobile") !== -1);
-
         return  (
             <form onSubmit={this.handleSubmit}>
                 <p><label htmlFor="date">Dato</label>
@@ -210,7 +206,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
                 {imageUploads}
 
-                <input type="file" accept="image/*" multiple={supportsMultiple} style={{display: 'none'}}
+                <input type="file" accept="image/*" multiple={true} style={{display: 'none'}}
                        onChange={this.addImages}/>
 
                 <div className="entry-buttons">
