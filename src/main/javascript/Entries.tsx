@@ -3,6 +3,7 @@ import axios, {AxiosError} from "axios";
 import Image from "./Image";
 import EntryEditor from "./EntryEditor";
 import {AuthenticationData, Entry as EntryData} from "./domain";
+import DateTimeFormatOptions = Intl.DateTimeFormatOptions;
 
 /** Page size for entry data requests. */
 const PAGE_SIZE = 10;
@@ -60,7 +61,7 @@ function friendlyDate(date: string) {
         }
     } else {
         // More than a week ago
-        let options;
+        let options: DateTimeFormatOptions;
         if (inDate.getFullYear() === now.getFullYear()) {
             options = {day: "numeric", month: "long"};
         } else {
