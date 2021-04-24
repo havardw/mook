@@ -233,8 +233,8 @@
                             <goal>install-node-and-npm</goal>
                         </goals>
                         <configuration>
-                            <nodeVersion>v10.13.0</nodeVersion>
-                            <npmVersion>6.4.1</npmVersion>
+                            <nodeVersion>v14.16.1</nodeVersion>
+                            <npmVersion>6.14.12</npmVersion>
                         </configuration>
                     </execution>
 
@@ -252,7 +252,7 @@
                         </goals>
 
                         <configuration>
-                            <arguments>-d</arguments>
+                            <arguments>--mode production</arguments>
                         </configuration>
                     </execution>
                 </executions>

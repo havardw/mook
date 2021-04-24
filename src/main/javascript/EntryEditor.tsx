@@ -224,7 +224,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
     }
 
     startAutoSave = () => {
-        this.autoSaveTimer = setInterval(this.save, 1000);
+        this.autoSaveTimer = window.setInterval(this.save, 1000);
     };
 
     stopAutoSave = () => {
