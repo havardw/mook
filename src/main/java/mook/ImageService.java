@@ -207,8 +207,7 @@ public class ImageService {
                 throw new IllegalStateException(String.format("Directory '%s' is not writable", target.toString()));
             }
         } else {
-            Files.createDirectory(target);
-            return target;
+            return Files.createDirectories(target);
         }
     }
 
