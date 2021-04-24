@@ -19,8 +19,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.sql.*;
 import java.util.Iterator;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -154,7 +152,7 @@ public class ImageService {
                 if (originalSize >= size) {
                     log.info("Added resize to queue size {} for {}", size, name);
                     // Run resize in executor queue so that we don't use all available memory
-                    Future<Void> imageResize = resizeExecutor.submit((Callable<Void>) () -> {
+                    Future<Void> imageResize = resizeExecutor.submit(() -> {
                         log.info("Creating resized image size {} for {}", size, name);
                         Thumbnails.of(original.toFile()).size(size, size).asFiles(resized.getParent().toFile(), Rename.NO_CHANGE);
                         return null;
@@ -204,7 +202,7 @@ public class ImageService {
             if (Files.isWritable(target)) {
                 return target;
             } else {
-                throw new IllegalStateException(String.format("Directory '%s' is not writable", target.toString()));
+                throw new IllegalStateException(String.format("Directory '%s' is not writable", target));
             }
         } else {
             return Files.createDirectories(target);
