@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import javax.sql.DataSource;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -32,21 +31,21 @@ public class AuthenticationService {
     }
 
     public AuthenticationData login(LoginData loginData)  {
-        log.info("Login attempt for user {}", loginData.getEmail());
+        log.info("Login attempt for user {}", loginData.email());
 
         try (Connection con = dataSource.getConnection()) {
             AuthenticationData auth;
 
             // Verify password and get user data
             try (PreparedStatement ps = con.prepareStatement("select id, name from user where email=? and hash=SHA2(?, 512)")) {
-                ps.setString(1, loginData.getEmail());
-                ps.setString(2, loginData.getPassword());
+                ps.setString(1, loginData.email());
+                ps.setString(2, loginData.password());
 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        auth = createSession(con, rs.getInt("id"), loginData.getEmail(), rs.getString("name"));
+                        auth = createSession(con, rs.getInt("id"), loginData.email(), rs.getString("name"));
                     } else {
-                        log.warn("Login for user {} failed", loginData.getEmail());
+                        log.warn("Login for user {} failed", loginData.email());
                         throw new AuthenticationException(AuthenticationException.Reason.PASSWORD_MISMATCH);
                     }
                 }
@@ -163,7 +162,7 @@ public class AuthenticationService {
     
     public MookPrincipal getPrincipal(String token) {
         AuthenticationData a = getAuthenticationData(token);
-        return new MookPrincipal(a.getId(), a.getEmail(), a.getDisplayName());
+        return new MookPrincipal(a.id(), a.email(), a.displayName());
     }
 
     @Scheduled(every = "1h")

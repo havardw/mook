@@ -53,13 +53,11 @@ public class EntryController {
     public Entry postEntry(Entry entry, @Context SecurityContext securityContext) {
     	log.info("POST for new entry");
     	
-    	int id = entryService.saveEntry(entry.getText(), entry.getDate(), entry.getImages(),
+    	int id = entryService.saveEntry(entry.text(), entry.date(), entry.images(),
                                ((MookPrincipal)securityContext.getUserPrincipal()).getId());
 
     	log.info("Inserted new entry from {}", securityContext.getUserPrincipal().getName());
 
-    	entry.setId(id);
-    	entry.setAuthor(((MookPrincipal)securityContext.getUserPrincipal()).getDisplayName());
-    	return entry;
+    	return new Entry(id, ((MookPrincipal)securityContext.getUserPrincipal()).getDisplayName(), entry.text(), entry.date(), entry.images());
    }
 }

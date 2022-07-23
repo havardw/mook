@@ -52,6 +52,6 @@ public class ImageControllerTest {
 
         assertThat(response.getStatus()).isEqualTo(201);
         assertThat(response.getHeaderString("Location")).isEqualTo("/unittest/api/image/42.jpg");
-        assertThat(((Image)response.getEntity()).getId()).isEqualTo(42);
+        assertThat(((Image)response.getEntity()).id()).isEqualTo(42);
     }
 }

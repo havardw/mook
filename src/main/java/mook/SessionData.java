@@ -1,8 +1,2 @@
 package mook;
-
-import lombok.Data;
-
-@Data
-public class SessionData {
-    String token;
-}
+public record SessionData(String token) { }

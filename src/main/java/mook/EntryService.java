@@ -45,7 +45,7 @@ public class EntryService {
                             id + "." + ImageService.extensionFromMimeType(rs.getString("mimeType")),
                             rs.getString("caption"));
                     int entryId = rs.getInt("entryId");
-                    result.get(entryId).getImages().add(img);
+                    result.get(entryId).images().add(img);
                 }
             }
         } catch (SQLException e) {
@@ -76,11 +76,11 @@ public class EntryService {
                 PreparedStatement ips = con.prepareStatement("update image set entryId = ?, caption = ? where id = ?");
                 for (Image image : images) {
                     ips.setInt(1, entryId);
-                    ips.setString(2, image.getCaption());
-                    ips.setInt(3, image.getId());
+                    ips.setString(2, image.caption());
+                    ips.setInt(3, image.id());
                     int changed = ips.executeUpdate();
                     if (changed == 0) {
-                        throw new IllegalStateException(String.format("Image not updated, no image with ID %d?", image.getId()));
+                        throw new IllegalStateException(String.format("Image not updated, no image with ID %d?", image.id()));
                     }
                 }
 

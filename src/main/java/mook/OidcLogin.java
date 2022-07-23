@@ -1,8 +1,2 @@
 package mook;
-
-import lombok.Data;
-
-@Data
-public class OidcLogin {
-    private String accessToken;
-}
+public record OidcLogin(String accessToken) { }

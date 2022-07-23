@@ -29,11 +29,11 @@ public class ImageController {
     public Response postImage(byte[] data, @Context SecurityContext securityContext, @Context UriInfo uriInfo) throws IOException {
         log.info("POST for new image, {} bytes", data.length);
         Image image = imageService.saveImage(data, ((MookPrincipal) securityContext.getUserPrincipal()).getId());
-        log.info("Saved image as {}", image.getName());
+        log.info("Saved image as {}", image.name());
 
         // We want an URI without host, so start from the path
         UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getRequestUri().getPath());
-        uriBuilder.path(image.getName());
+        uriBuilder.path(image.name());
         Response.ResponseBuilder response = Response.created(uriBuilder.build());
         response.entity(image);
         return response.build();

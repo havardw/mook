@@ -52,8 +52,8 @@ public class ImageServiceTest {
 
         Image result = service.saveImage(img, 2);
 
-        assertThat(result.getName()).matches("\\d+\\.png");
-        Path imgPath = Paths.get(base.toString(), "original", result.getName());
+        assertThat(result.name()).matches("\\d+\\.png");
+        Path imgPath = Paths.get(base.toString(), "original", result.name());
         assertThat(imgPath).exists();
     }
 
@@ -64,8 +64,8 @@ public class ImageServiceTest {
 
         Image result = service.saveImage(img, 2);
 
-        assertThat(result.getName()).matches("\\d+\\.jpg");
-        Path imgPath = Paths.get(base.toString(), "original", result.getName());
+        assertThat(result.name()).matches("\\d+\\.jpg");
+        Path imgPath = Paths.get(base.toString(), "original", result.name());
         assertThat(imgPath).exists();
     }
 

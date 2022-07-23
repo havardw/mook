@@ -38,7 +38,7 @@ public class LoginController {
     @Produces({MediaType.APPLICATION_JSON})
     public Response verifyoicd(OidcLogin oidc) {
         try {
-            AuthenticationData auth = authService.verifyOidc(oidc.getAccessToken());
+            AuthenticationData auth = authService.verifyOidc(oidc.accessToken());
             return Response.ok().entity(auth).build();
         } catch (AuthenticationException e) {
             return Response.status(Response.Status.UNAUTHORIZED).entity(fromException(e)).build();
@@ -50,8 +50,8 @@ public class LoginController {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response resumeSession(SessionData data) {
-        if (authService.isAuthenticated(data.getToken())) {
-            return Response.ok().entity(authService.getAuthenticationData(data.token)).build();
+        if (authService.isAuthenticated(data.token())) {
+            return Response.ok().entity(authService.getAuthenticationData(data.token())).build();
         } else {
             AuthenticationError error = new AuthenticationError(AuthenticationError.SESSION_EXPIRED);
             return Response.status(Response.Status.UNAUTHORIZED).entity(error).build();

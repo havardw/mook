@@ -1,9 +1,2 @@
 package mook;
-
-import lombok.Data;
-
-@Data
-public class LoginData {
-    private String email;
-    private String password;
-}
+public record LoginData(String email, String password) { }
