@@ -1,9 +1,10 @@
 package mook;
 
+import io.quarkus.scheduler.Scheduled;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.sql.DataSource;
 import javax.ws.rs.ProcessingException;
@@ -19,18 +20,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
 
-@Singleton
+@ApplicationScoped
 @Slf4j
 public class AuthenticationService {
     
     private final DataSource dataSource;
 
-    private final String googleClientId;
-
     @Inject
-    public AuthenticationService(DataSource dataSource, @Named("Google client ID") String googleClientId) {
+    public AuthenticationService(DataSource dataSource) {
         this.dataSource = dataSource;
-        this.googleClientId = googleClientId;
     }
 
     public AuthenticationData login(LoginData loginData)  {
@@ -168,6 +166,7 @@ public class AuthenticationService {
         return new MookPrincipal(a.getId(), a.getEmail(), a.getDisplayName());
     }
 
+    @Scheduled(every = "1h")
     public void cleanExpiredTokens() {
         try (Connection conn = dataSource.getConnection()) {
             try (Statement statement = conn.createStatement()) {

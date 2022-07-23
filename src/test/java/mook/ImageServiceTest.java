@@ -2,7 +2,10 @@ package mook;
 
 import mook.test.DeleteFiles;
 import mook.test.TestDatabase;
-import org.junit.*;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.net.URL;
@@ -11,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests for ImageService.
@@ -23,19 +27,19 @@ public class ImageServiceTest {
 
     private static DataSource ds;
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpDb() throws Exception {
         ds = TestDatabase.get("ImageServiceTest");
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         base = Files.createTempDirectory("ImageServiceTest");
         service = new ImageService(base.toString(), ds, null);
 
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         Files.walkFileTree(base, new DeleteFiles());
     }
@@ -66,11 +70,11 @@ public class ImageServiceTest {
     }
 
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void saveUnsupported() throws Exception {
         URL imageUrl = getClass().getResource("/image.gif");
         byte[] img = Files.readAllBytes(Paths.get(imageUrl.toURI()));
 
-        service.saveImage(img, 2);
+        assertThatThrownBy(() -> service.saveImage(img, 2)).isInstanceOf(IllegalArgumentException.class);
     }
 }

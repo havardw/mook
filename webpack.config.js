@@ -2,7 +2,7 @@ module.exports = {
     entry: "./src/main/javascript/index.tsx",
     output: {
         filename: "bundle.js",
-        path: __dirname + "/target/webpack/js"
+        path: __dirname + "/target/classes/META-INF/resources/js"
     },
 
     module: {

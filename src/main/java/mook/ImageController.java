@@ -13,7 +13,7 @@ import java.util.Date;
 /**
  * REST endpoint for images.
  */
-@Path("image")
+@Path("/api/image")
 @Slf4j
 public class ImageController {
 

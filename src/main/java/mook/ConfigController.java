@@ -3,6 +3,7 @@ package mook;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -16,24 +17,29 @@ import java.util.*;
 /**
  * Rest endpoint for client config.
  */
-@Path("config.js")
+@Path("/api/config.js")
 public class ConfigController {
 
-    private final Properties config;
+    @ConfigProperty(name = "mook.name", defaultValue = "Mook")
+    String name;
 
-    @Inject
-    public ConfigController(@Named("config") Properties config) {
-        this.config = config;
-    }
+    @ConfigProperty(name = "mook.prefix", defaultValue = "default")
+    String prefix;
+
+    @ConfigProperty(name = "google.clientId")
+    String googleClientId;
+
+    @ConfigProperty(name = "google.targetUrl")
+    String googleTargetUrl;
 
     @GET
     @Produces("application/javascript")
     public String config() {
         Map<String, Object> map = new HashMap<>();
-        map.put("name", config.getProperty("mook.name", "Mook"));
-        map.put("prefix", config.getProperty("mook.prefix", "default"));
-        map.put("googleId", config.getProperty("google.clientId"));
-        map.put("googleTargetUrl", config.getProperty("google.targetUrl"));
+        map.put("name", name);
+        map.put("prefix", prefix);
+        map.put("googleId", googleClientId);
+        map.put("googleTargetUrl", googleTargetUrl);
 
         StringWriter stringWriter = new StringWriter();
         JsonFactory factory = new JsonFactory(new ObjectMapper());

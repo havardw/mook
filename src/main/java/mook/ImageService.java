@@ -3,7 +3,9 @@ package mook;
 import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.name.Rename;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.FileImageInputStream;
@@ -26,6 +28,7 @@ import java.util.concurrent.Future;
  * Data service for images.
  */
 @Slf4j
+@ApplicationScoped
 public class ImageService {
 
     private static final byte[] MAGIC_PNG = { -119, 0x50, 0x4E, 0x47 };
@@ -47,7 +50,7 @@ public class ImageService {
 
 
     @Inject
-    public ImageService(@Named("imagePath") String basePath, DataSource ds, @Named("thumbnailExecutor") ExecutorService executor) {
+    public ImageService(@ConfigProperty(name = "mook.image.path") String basePath, DataSource ds, @Named("thumbnailExecutor") ExecutorService executor) {
         this.basePath = basePath;
         this.ds = ds;
         this.resizeExecutor = executor;

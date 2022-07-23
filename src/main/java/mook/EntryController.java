@@ -9,7 +9,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
 
-@Path("entry")
+@Path("/api/entry")
 @Slf4j
 public class EntryController {
 

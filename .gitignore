@@ -1,6 +1,6 @@
 target
 .idea
 *.iml
-dev.properties
+/.env
 node
 node_modules

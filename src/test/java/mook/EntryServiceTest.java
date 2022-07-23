@@ -1,15 +1,16 @@
 package mook;
 
 import mook.test.TestDatabase;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests for EntryService.
@@ -20,19 +21,19 @@ public class EntryServiceTest {
 
     private static DataSource ds;
 
-    @BeforeClass
+    @BeforeAll
     public static void initDb() {
         ds = TestDatabase.get("EntryServiceTest");
     }
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() {
         service = new EntryService(ds);
 
     }
 
     @Test
-    public void saveEntry() throws Exception {
+    public void saveEntry() {
         TestDatabase.insert(ds, "insert into image (userId, mimeType) values (?, ?)", 1, "image/test");
 
         int id = service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(1, null, "Test")), 7);
@@ -45,9 +46,10 @@ public class EntryServiceTest {
         assertThat(image.get("caption")).isEqualTo("Test");
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void saveEntryWithMissingImage() throws Exception {
-        service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(2, null, "Test")), 7);
+    @Test()
+    public void saveEntryWithMissingImage() {
+        assertThatThrownBy(() -> service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(2, null, "Test")), 7))
+                .isInstanceOf(IllegalStateException.class);
     }
 
 }

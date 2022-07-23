@@ -17,7 +17,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     private final AuthenticationService authService;
     
-    private final List<String> skipPaths = Arrays.asList("login", "oidc-login", "resumeSession", "config.js");
+    private final List<String> skipPaths = Arrays.asList("/api/login", "/api/oidc-login", "/api/resumeSession", "/api/config.js");
 
     @Inject
     public AuthenticationFilter(AuthenticationService authService) {
