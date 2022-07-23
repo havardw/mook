@@ -59,13 +59,13 @@ public class LoginController {
     }
 
     private static AuthenticationError fromException(AuthenticationException e) {
-        switch (e.getReason()) {
-            case PASSWORD_MISMATCH: return new AuthenticationError(AuthenticationError.PASSWORD_MISMATCH);
-            case OAUTH_NOT_REGISTERED: return new AuthenticationError(AuthenticationError.OAUTH_NOT_REGISTERED, e.getEmail());
-            case OAUTH_CONFIG: return new AuthenticationError(AuthenticationError.OAUTH_CONFIG_ERROR);
-            default:
-                return new AuthenticationError(AuthenticationError.UNKNOWN_ERROR);
-        }
+        return switch (e.getReason()) {
+            case PASSWORD_MISMATCH -> new AuthenticationError(AuthenticationError.PASSWORD_MISMATCH);
+            case OAUTH_NOT_REGISTERED ->
+                    new AuthenticationError(AuthenticationError.OAUTH_NOT_REGISTERED, e.getEmail());
+            case OAUTH_CONFIG -> new AuthenticationError(AuthenticationError.OAUTH_CONFIG_ERROR);
+            default -> new AuthenticationError(AuthenticationError.UNKNOWN_ERROR);
+        };
     }
 }
 

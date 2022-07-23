@@ -223,11 +223,11 @@ public class ImageService {
     }
 
     static String extensionFromMimeType(String mimeType) {
-        switch (mimeType) {
-            case MIME_PNG: return "png";
-            case MIME_JPG: return "jpg";
-            default: throw new IllegalArgumentException(String.format("Unknown mime type '%s'", mimeType));
-        }
+        return switch (mimeType) {
+            case MIME_PNG -> "png";
+            case MIME_JPG -> "jpg";
+            default -> throw new IllegalArgumentException(String.format("Unknown mime type '%s'", mimeType));
+        };
     }
 
     private static boolean arrayStartsWith(byte[] data, byte[] start) {
@@ -242,11 +242,11 @@ public class ImageService {
 
     public MediaType getMimeTypeFromName(String filename) {
         String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
-        switch (ext) {
-            case "png": return new MediaType("image", "png");
-            case "jpg": return new MediaType("image", "jpg");
-            default: return MediaType.APPLICATION_OCTET_STREAM_TYPE;
-        }
+        return switch (ext) {
+            case "png" -> new MediaType("image", "png");
+            case "jpg" -> new MediaType("image", "jpg");
+            default -> MediaType.APPLICATION_OCTET_STREAM_TYPE;
+        };
     }
 
 }

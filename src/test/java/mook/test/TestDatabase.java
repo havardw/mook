@@ -48,13 +48,10 @@ public class TestDatabase {
                 if (params != null) {
                     for (int i = 0; i < params.length; i++) {
                         switch (params[i].getClass().getSimpleName()) {
-                            case "String": ps.setString(i + 1, (String)params[i]);
-                                break;
-                            case "Integer": ps.setInt(i + 1, (Integer)params[i]);
-                                break;
-                            case "Long": ps.setLong(i + 1, (Long)params[i]);
-                                break;
-                            default: ps.setObject(i + 1, params[i]);
+                            case "String" -> ps.setString(i + 1, (String) params[i]);
+                            case "Integer" -> ps.setInt(i + 1, (Integer) params[i]);
+                            case "Long" -> ps.setLong(i + 1, (Long) params[i]);
+                            default -> ps.setObject(i + 1, params[i]);
                         }
                     }
                 }
