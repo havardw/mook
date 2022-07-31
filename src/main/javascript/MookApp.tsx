@@ -6,8 +6,6 @@ import Entries from "./Entries";
 import {parseQuery} from "./utils";
 import {AuthenticationData} from "./domain";
 
-import 'promise-polyfill/src/polyfill';
-
 const USER_DATA_KEY = "mook." + mookConfig.prefix + ".userData";
 
 export const OAUTH_STATE_KEY = "mook." + mookConfig.prefix + ".oauthState";
@@ -28,8 +26,8 @@ class MookApp extends React.Component<{}, ApplicationState> {
         super(props);
 
         // Check for supported browser
-        let supportedBrowser = (!!((window as any).ProgressEvent)) && (!!((window as any).FormData)); // Checks for XHR 2
-
+        let supportedBrowser = (!!(window.ProgressEvent)) && (!!(window.FormData))  // Checks for XHR 2
+                               && (!!window.Promise); // Require native promise support
 
         // Check for saved login, legacy format first, convert to new format if found
         let userDataStr = window.sessionStorage.getItem("mook.userData");
