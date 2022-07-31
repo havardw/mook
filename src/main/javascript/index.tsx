@@ -1,6 +1,6 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 import MookApp from "./MookApp";
+import {createRoot} from "react-dom/client";
 
 window.addEventListener("DOMContentLoaded",
     function() {
@@ -9,8 +9,6 @@ window.addEventListener("DOMContentLoaded",
         document.getElementById("applicationName").innerText = mookConfig.name;
         document.title = mookConfig.name;
 
-        ReactDOM.render(
-            <MookApp />,
-            document.getElementById("root")
-        );
+        const root = createRoot(document.getElementById("root"));
+        root.render(<MookApp />);
     }, false);

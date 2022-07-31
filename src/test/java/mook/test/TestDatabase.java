@@ -4,7 +4,6 @@ import org.hsqldb.jdbc.JDBCDataSource;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.*;
@@ -31,7 +30,7 @@ public class TestDatabase {
         ds.setPassword("");
 
         try {
-            String sql = new String(Files.readAllBytes(Paths.get("mook.sql")), StandardCharsets.UTF_8);
+            String sql = Files.readString(Paths.get("mook.sql"));
             try (Connection conn = ds.getConnection()) {
                 conn.createStatement().executeUpdate(sql);
             }
