@@ -12,10 +12,10 @@ export const OAUTH_STATE_KEY = "mook." + mookConfig.prefix + ".oauthState";
 
 interface ApplicationState {
     loginState: string;
-    userData: AuthenticationData;
-    globalError: string;
+    userData?: AuthenticationData;
+    globalError?: string;
     supportedBrowser: boolean;
-    rememberOidcLogin?: boolean;
+    rememberOidcLogin: boolean;
     oidcAccessToken?: string;
     oidcError?: {code: string; email: string}
 }
@@ -50,8 +50,8 @@ class MookApp extends React.Component<{}, ApplicationState> {
         }
 
         let loginState: string;
-        let userData: AuthenticationData;
-        let oidcAccessToken: string;
+        let userData: AuthenticationData | undefined;
+        let oidcAccessToken: string | undefined;
         let rememberOidcLogin = false;
         if (userDataStr !== null) {
             loginState = "restore";
@@ -63,7 +63,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
 
                 if (params.hasOwnProperty("access_token") && params.hasOwnProperty("state")) {
                     // Remove fragment from URL
-                    history.pushState(null, null, window.location.pathname + window.location.search);
+                    history.pushState(null, "", window.location.pathname + window.location.search);
 
                     let storedState = window.sessionStorage.getItem(OAUTH_STATE_KEY);
                     window.sessionStorage.removeItem(OAUTH_STATE_KEY);
@@ -90,8 +90,8 @@ class MookApp extends React.Component<{}, ApplicationState> {
         this.state = {
             userData: userData,
             loginState: loginState,
-            globalError: null,
-            oidcError: null,
+            globalError: undefined,
+            oidcError: undefined,
             supportedBrowser: supportedBrowser,
             oidcAccessToken: oidcAccessToken,
             rememberOidcLogin: rememberOidcLogin
@@ -100,14 +100,14 @@ class MookApp extends React.Component<{}, ApplicationState> {
 
     componentDidMount() {
         if (this.state.loginState === "restore") {
-            axios.post("api/resumeSession", {token: this.state.userData.token})
+            axios.post("api/resumeSession", {token: this.state.userData?.token})
                 .then(response => this.setState({userData: response.data, loginState: "loggedIn"}))
                 .catch(error =>   {
                     if (error.response && error.response.status === 401) {
                         console.log("Stored session is not valid");
                         window.sessionStorage.removeItem(USER_DATA_KEY);
                         window.localStorage.removeItem(USER_DATA_KEY);
-                        this.setState({globalError: null, loginState: "unauthorized"});
+                        this.setState({globalError: undefined, loginState: "unauthorized"});
                     } else {
                         this.handleHttpError(error);
                     }
@@ -115,12 +115,12 @@ class MookApp extends React.Component<{}, ApplicationState> {
         } else if (this.state.loginState === "oidc") {
             axios.post("api/oidc-login", {accessToken: this.state.oidcAccessToken})
                 .then(response => {
-                    this.setState({rememberOidcLogin: undefined, oidcAccessToken: undefined});
+                    this.setState({rememberOidcLogin: false, oidcAccessToken: undefined});
                     this.handleLogin(response.data, this.state.rememberOidcLogin);
                 })
                 .catch(error => {
                     if (error.response && error.response.status === 401) {
-                        this.setState({globalError: null,
+                        this.setState({globalError: undefined,
                             loginState: "unauthorized",
                             oidcError: {
                                 code: error.response.data.errorCode,
@@ -149,7 +149,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
             this.setState({globalError: "Ingen nettverkskobling"});
         } else {
             if (error.response.status === 401) {
-                this.setState({globalError: null, userData: null, loginState: "unauthorized"});
+                this.setState({globalError: undefined, userData: undefined, loginState: "unauthorized"});
             } else {
                 console.warn("Unhandled error: " + error.message);
                 this.setState({globalError: "Ukjent feil"});
@@ -180,7 +180,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
             return (<em>Vent litt...</em>);
         }
         else {
-            return (<Entries onHttpError={this.handleHttpError} userData={this.state.userData} />);
+            return (<Entries onHttpError={this.handleHttpError} userData={this.state.userData!} />);
         }
 
     }

@@ -17,8 +17,8 @@ export function randomString(): string {
     return str;
 }
 
-export function parseQuery(queryString: string): {[key: string]: string} {
-    let result: {[key: string]: string} = {};
+export function parseQuery(queryString: string): {[key: string]: string | undefined} {
+    let result: {[key: string]: string | undefined} = {};
     let pairs = queryString.split("&");
     pairs.forEach(pair => {
         let firstEquals = pair.indexOf("=");

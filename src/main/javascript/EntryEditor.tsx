@@ -117,12 +117,18 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
     };
 
     addImages = (event: React.ChangeEvent<HTMLInputElement>) => {
-        let uploads = [];
+        let uploads: File[] = [];
         let files = event.target.files;
+        if (files === null) {
+            return;
+        }
 
         console.info("Adding " + files.length + " images");
         for (let i = 0; i < files.length; i++) {
-            uploads.push(files.item(i));
+            let file = files.item(i);
+            if (file !== null) {
+                uploads.push(file);
+            }
         }
 
         this.setState({uploads: this.state.uploads.concat(uploads)});
@@ -230,7 +236,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
 function showImageSelector(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
-    let fileInput = (event.target as Element).parentElement.parentElement.querySelector("input[type='file']");
+    let fileInput = (event.target as Element)?.parentElement?.parentElement?.querySelector("input[type='file']");
     (fileInput as HTMLButtonElement).click();
 }
 

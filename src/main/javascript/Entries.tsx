@@ -131,7 +131,7 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
                         return 1;
                     } else {
                         // Secondary sort by ID
-                        return b.id - a.id;
+                        return (b.id !== undefined ? b.id: 0) - (a.id !== undefined ? a.id : 0);
                     }
                 });
 
