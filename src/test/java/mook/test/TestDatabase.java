@@ -1,11 +1,6 @@
 package mook.test;
 
-import org.hsqldb.jdbc.JDBCDataSource;
-
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,30 +11,6 @@ import java.util.Map;
 public class TestDatabase {
     
     private TestDatabase() {}
-
-    /**
-     * Create a new in-memory database with default schema.
-     *
-     * @param name The name for the database, typically the name of the test.
-     * @return Data source with empty database
-     */
-    public static DataSource get(String name) {
-        JDBCDataSource ds = new JDBCDataSource();
-        ds.setURL(String.format("jdbc:hsqldb:mem:%s;sql.syntax_mys=true", name));
-        ds.setUser("sa");
-        ds.setPassword("");
-
-        try {
-            String sql = Files.readString(Paths.get("mook.sql"));
-            try (Connection conn = ds.getConnection()) {
-                conn.createStatement().executeUpdate(sql);
-            }
-        } catch (IOException | SQLException e) {
-            throw new RuntimeException("failed to create database");
-        }
-
-        return ds;
-    }
 
     public static void insert(DataSource ds, String query, Object... params) {
         try (Connection conn = ds.getConnection())  {

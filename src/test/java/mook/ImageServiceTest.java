@@ -1,12 +1,12 @@
 package mook;
 
+import io.quarkus.test.junit.QuarkusTest;
 import mook.test.DeleteFiles;
-import mook.test.TestDatabase;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.inject.Inject;
 import javax.sql.DataSource;
 import java.net.URL;
 import java.nio.file.Files;
@@ -19,18 +19,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Unit tests for ImageService.
  */
+@QuarkusTest
 public class ImageServiceTest {
 
     private ImageService service;
 
     private Path base;
 
-    private static DataSource ds;
-
-    @BeforeAll
-    public static void setUpDb() throws Exception {
-        ds = TestDatabase.get("ImageServiceTest");
-    }
+    @Inject
+    DataSource ds;
 
     @BeforeEach
     public void setUp() throws Exception {

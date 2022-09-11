@@ -23,17 +23,17 @@ public class EntryService {
         this.ds = ds;
     }
 
-    public Collection<Entry> getEntries(int offset, int limit) {
+    public Collection<Entry> getEntries(int offset, int count) {
         Map<Integer, Entry> result = new HashMap<>();
 
         try (Connection con = ds.getConnection())  {
             ResultSet rs = con.createStatement().executeQuery("SELECT e.id, e.entrydate, e.entryText, u.name " +
-                                                              "FROM entry e,user u WHERE e.userId = u.id " +
+                                                              "FROM entry e,users u WHERE e.userId = u.id " +
                                                               "ORDER BY e.entrydate DESC, id DESC " +
-                                                              "LIMIT " + limit + " OFFSET " + offset);
+                                                              "OFFSET " + offset + " ROWS FETCH NEXT " + count + " ROWS ONLY");
             while (rs.next()) {
-                int id = rs.getInt("e.id");
-                result.put(id, new Entry(id, rs.getString("u.name"), rs.getString("e.entrytext"), rs.getDate("e.entrydate")));
+                int id = rs.getInt("id");
+                result.put(id, new Entry(id, rs.getString("name"), rs.getString("entrytext"), rs.getDate("entrydate")));
             }
 
             // May get an empty result with an offset larger than item count

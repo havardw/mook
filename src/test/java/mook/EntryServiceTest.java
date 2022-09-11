@@ -1,10 +1,11 @@
 package mook;
 
+import io.quarkus.test.junit.QuarkusTest;
 import mook.test.TestDatabase;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javax.inject.Inject;
 import javax.sql.DataSource;
 
 import java.util.*;
@@ -15,16 +16,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Unit tests for EntryService.
  */
+@QuarkusTest
 public class EntryServiceTest {
 
     private EntryService service;
 
-    private static DataSource ds;
-
-    @BeforeAll
-    public static void initDb() {
-        ds = TestDatabase.get("EntryServiceTest");
-    }
+    @Inject
+    DataSource ds;
 
     @BeforeEach
     public void setUp() {
@@ -36,7 +34,7 @@ public class EntryServiceTest {
     public void saveEntry() {
         TestDatabase.insert(ds, "insert into image (userId, mimeType) values (?, ?)", 1, "image/test");
 
-        int id = service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(1, null, "Test")), 7);
+        int id = service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(1, null, "Test")), 1);
 
         Map<String, Object> entry = TestDatabase.querySingleRow(ds, "entry", "id", id);
         assertThat(entry.get("entrytext")).isEqualTo("Entry");
@@ -48,7 +46,7 @@ public class EntryServiceTest {
 
     @Test()
     public void saveEntryWithMissingImage() {
-        assertThatThrownBy(() -> service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(2, null, "Test")), 7))
+        assertThatThrownBy(() -> service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(2, null, "Test")), 1))
                 .isInstanceOf(IllegalStateException.class);
     }
 

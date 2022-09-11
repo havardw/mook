@@ -14,6 +14,8 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.sql.*;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -38,10 +40,14 @@ public class AuthenticationService {
         try (Connection con = dataSource.getConnection()) {
             AuthenticationData auth;
 
+            // Hashing in Java rather than DB because the DB function will give different results for varchar and nvarchar
+            MessageDigest digest = MessageDigest.getInstance("SHA-512");
+            byte[] hash = digest.digest(loginData.password().getBytes(StandardCharsets.UTF_8));
+
             // Verify password and get user data
-            try (PreparedStatement ps = con.prepareStatement("select id, name from user where email=? and hash=SHA2(?, 512)")) {
+            try (PreparedStatement ps = con.prepareStatement("select id, name from users where email=? and hash=?")) {
                 ps.setString(1, loginData.email());
-                ps.setString(2, loginData.password());
+                ps.setBytes(2, hash);
 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -54,7 +60,7 @@ public class AuthenticationService {
             }
 
             return auth;
-        } catch (SQLException se) {
+        } catch (Exception se) {
             throw new RuntimeException("Database error", se);
         }
     }
@@ -90,7 +96,7 @@ public class AuthenticationService {
 
         // Get user data
         try (Connection con = dataSource.getConnection()) {
-            try (PreparedStatement ps = con.prepareStatement("select id, name from user where email=?")) {
+            try (PreparedStatement ps = con.prepareStatement("select id, name from users where email=?")) {
                 ps.setString(1, email);
 
                 try (ResultSet rs = ps.executeQuery()) {
@@ -115,7 +121,7 @@ public class AuthenticationService {
 
             ps.setString(1, uuid);
             ps.setInt(2, userId);
-            ps.setTimestamp(3, new Timestamp(expiresSeconds * 1000));
+            ps.setDate(3, new Date(expiresSeconds * 1000));
 
             ps.executeUpdate();
         }
@@ -125,7 +131,7 @@ public class AuthenticationService {
 
     public boolean isAuthenticated(String token) {
         try (Connection conn = dataSource.getConnection()) {
-            String query = "select count(*) from userSession where uuid=? and expires > now()";
+            String query = "select count(*) from userSession where uuid=? and expires > CURRENT_TIMESTAMP";
             try (PreparedStatement ps = conn.prepareStatement(query)) {
                 ps.setString(1, token);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -142,8 +148,8 @@ public class AuthenticationService {
     public AuthenticationData getAuthenticationData(String token) {
         try (Connection conn = dataSource.getConnection()) {
             String query = "select u.id, u.email, u.name " +
-                    "from user u, userSession us " +
-                    "where us.expires > now() and us.uuid=? and us.userId=u.id;";
+                    "from users u, userSession us " +
+                    "where us.expires > CURRENT_TIMESTAMP and us.uuid=? and us.userId=u.id;";
             try (PreparedStatement ps = conn.prepareStatement(query)) {
                 ps.setString(1, token);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -171,7 +177,7 @@ public class AuthenticationService {
     public void cleanExpiredTokens() {
         try (Connection conn = dataSource.getConnection()) {
             try (Statement statement = conn.createStatement()) {
-                int deleted = statement.executeUpdate("delete from userSession where expires < now()");
+                int deleted = statement.executeUpdate("delete from userSession where expires < CURRENT_TIMESTAMP");
                 if (deleted > 0) {
                     log.debug("Cleared {} expired sessions", deleted);
                 }

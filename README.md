@@ -5,7 +5,7 @@ Mook is an (intentionally) simple shared diary.
 Mook requires Java 17 and a recent version of Maven.
 
 ## Configuration
-Configuration for database, file storage and OAuth need to be set for each instance.
+Configuration for database (Azure SQL), file storage and OAuth need to be set for each instance.
 See [Quarkus config documentation](https://quarkus.io/guides/config-reference) for
 alternatives.
 * Database property `quarkus.datasource.jdbc.url` need to be set, with `quarkus.datasource.username` and `quarkus.datasource.password`
@@ -15,7 +15,7 @@ alternatives.
 
 Example (as .env file):
 ```shell
-QUARKUS_DATASOURCE_JDBC_URL=jdbc:mariadb://localhost:3306/mook_dev
+QUARKUS_DATASOURCE_JDBC_URL=jdbc:sqlserver://mydb.database.windows.net:1433;database=…
 QUARKUS_DATASOURCE_USERNAME=dbuser
 QUARKUS_DATASOURCE_PASSWORD=***
 
@@ -26,4 +26,6 @@ MOOK_IMAGE_PATH=/home/data/mook-dev/img
 
 GOOGLE_CLIENTID=xxxxx.apps.googleusercontent.com
 GOOGLE_TARGETURL=http://localhost:8080
+
+_TEST_QUARKUS_DATASOURCE_JDBC_URL=jdbc:h2:mem:unittest;MODE=MSSQLServer
 ```
