@@ -1,7 +1,8 @@
 package mook;
 
 import io.quarkus.scheduler.Scheduled;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -20,8 +21,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @ApplicationScoped
-@Slf4j
 public class AuthenticationService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
     
     private final DataSource dataSource;
 

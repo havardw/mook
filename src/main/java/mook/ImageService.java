@@ -1,9 +1,10 @@
 package mook;
 
-import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.name.Rename;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.imageio.ImageIO;
@@ -27,10 +28,11 @@ import java.util.concurrent.Future;
 /**
  * Data service for images.
  */
-@Slf4j
 @ApplicationScoped
 public class ImageService {
 
+    private static final Logger log = LoggerFactory.getLogger(ImageService.class);
+    
     private static final byte[] MAGIC_PNG = { -119, 0x50, 0x4E, 0x47 };
 
     /* Magic bytes common for all JPG formats. Hex FF D8 FF. */

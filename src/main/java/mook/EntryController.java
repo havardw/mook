@@ -1,6 +1,7 @@
 package mook;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -10,8 +11,9 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
 
 @Path("/api/entry")
-@Slf4j
 public class EntryController {
+
+    private static final Logger log = LoggerFactory.getLogger(EntryController.class);
 
 	private final EntryService entryService;
 

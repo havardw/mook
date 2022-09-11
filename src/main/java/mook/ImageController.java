@@ -1,6 +1,7 @@
 package mook;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -14,8 +15,9 @@ import java.util.Date;
  * REST endpoint for images.
  */
 @Path("/api/image")
-@Slf4j
 public class ImageController {
+    
+    private static final Logger log = LoggerFactory.getLogger(ImageController.class);
 
     private final ImageService imageService;
 

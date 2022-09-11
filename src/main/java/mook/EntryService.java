@@ -1,6 +1,7 @@
 package mook;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -11,9 +12,10 @@ import java.util.Date;
 import java.util.stream.Collectors;
 
 @Singleton
-@Slf4j
 public class EntryService {
 
+    private static final Logger log = LoggerFactory.getLogger(EntryService.class);
+    
     private final DataSource ds;
 
     @Inject
