@@ -1,27 +1,24 @@
 package mook;
 
 import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.name.Rename;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.sql.DataSource;
 import javax.ws.rs.core.MediaType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.sql.*;
 import java.util.Iterator;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -42,8 +39,7 @@ public class ImageService {
 
     private static final String MIME_JPG = "image/jpg";
 
-    /** Base path for saving images. */
-    private final String basePath;
+    private final ImageStorage storage;
 
     private final DataSource ds;
 
@@ -52,13 +48,13 @@ public class ImageService {
 
 
     @Inject
-    public ImageService(@ConfigProperty(name = "mook.image.path") String basePath, DataSource ds, @Named("thumbnailExecutor") ExecutorService executor) {
-        this.basePath = basePath;
+    public ImageService(ImageStorage imageStorage, DataSource ds, @Named("thumbnailExecutor") ExecutorService executor) {
+        this.storage = imageStorage;
         this.ds = ds;
         this.resizeExecutor = executor;
     }
 
-    public Image saveImage(byte[] data, int userId) throws IOException {
+    public Image saveImage(byte[] data, int userId) {
 
         String mimeType = checkMimeType(data);
         try (Connection con = ds.getConnection()) {
@@ -78,7 +74,7 @@ public class ImageService {
             String ext = extensionFromMimeType(mimeType);
             String fileName = String.format("%d.%s", id, ext);
 
-            Files.write(prepareDir("original").resolve(fileName), data, StandardOpenOption.CREATE_NEW);
+            storage.storeImage(fileName, data);
 
             con.commit();
 
@@ -93,15 +89,10 @@ public class ImageService {
     }
 
     public byte[] readImage(String name) {
-        Path image = Paths.get(basePath,  "original", name);
-        if (Files.exists(image)) {
-            try {
-                return Files.readAllBytes(image);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to read image file", e);
-            }
-        } else {
-            return null;
+        try {
+            return storage.readImage(name).orElse(null);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read image");
         }
     }
 
@@ -120,75 +111,68 @@ public class ImageService {
                 }
             }
 
-            Path image = Paths.get(basePath, "original", name);
-            Files.delete(image);
-            log.info("Deleted original image {}", image);
+            storage.deleteImage(name);
 
-            Files.find(Paths.get(basePath), 2, (path, basicFileAttributes) -> path.endsWith(name))
-                    .forEach(p -> {
-                        try {
-                            Files.delete(p);
-                            log.info("Deleted resized image " + p.subpath(p.getParent().getNameCount() - 2, p.getParent().getNameCount()));
-                        } catch (IOException e) {
-                            log.warn("Failed to delete resized image " + p);
-                        }
-                    });
-
+            con.commit();
+            log.info("Deleted image {}", name);
         } catch (IOException ioe) {
-            throw new RuntimeException("Failed to delete file from file system", ioe);
+            throw new RuntimeException("Failed to delete image", ioe);
         } catch (SQLException sqle) {
-            throw new RuntimeException("Database error when deleting file", sqle);
+            throw new RuntimeException("Database error when deleting image", sqle);
         }
     }
 
     public byte[] getResizedImage(int size, String name) {
-        Path original = Paths.get(basePath,  "original", name);
-        if (!Files.exists(original)) {
-            return null;
-        }
-
-        // Create resized image if it doesn't exist
-        Path resized = Paths.get(basePath, Integer.toString(size), name);
-        if (!Files.exists(resized)) {
-            try {
-                prepareDir(Integer.toString(size));
-
-                int originalSize = getImageMaxDimension(name);
-                if (originalSize >= size) {
-                    log.info("Added resize to queue size {} for {}", size, name);
-                    // Run resize in executor queue so that we don't use all available memory
-                    Future<Void> imageResize = resizeExecutor.submit(() -> {
-                        log.info("Creating resized image size {} for {}", size, name);
-                        Thumbnails.of(original.toFile()).size(size, size).asFiles(resized.getParent().toFile(), Rename.NO_CHANGE);
-                        return null;
-                    });
-
-                    // Wait for completion
-                    imageResize.get();
-                } else {
-                    log.info("Image {} has size {}, using original for size {}", name, originalSize, size);
-                    Files.copy(original, resized);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to resize image", e);
-            }
-        }
-
         try {
-            return Files.readAllBytes(resized);
+            var existingResize = storage.readResizedImage(name, size);
+            if (existingResize.isPresent()) {
+                return existingResize.get();
+            }
+
+            var existingImage = storage.readImage(name);
+            if (existingImage.isEmpty()) {
+                return null;
+            }
+
+            String ext = name.substring(name.lastIndexOf('.') + 1);
+            int originalSize = getImageMaxDimension(existingImage.get(), ext);
+            if (originalSize >= size) {
+                log.info("Added resize to queue size {} for {}", size, name);
+                // Run resize in executor queue so that we don't use all available memory
+                Future<ByteArrayOutputStream> imageResize = resizeExecutor.submit(() -> {
+                    log.info("Creating resized image size {} for {}", size, name);
+                    ByteArrayOutputStream out = new ByteArrayOutputStream(size * size);
+                    Thumbnails.of(new ByteArrayInputStream(existingImage.get()))
+                            .size(size, size)
+                            .toOutputStream(out);
+                    return out;
+                });
+
+                // Wait for completion
+                try {
+                    ByteArrayOutputStream result = imageResize.get();
+                    byte[] data = result.toByteArray();
+                    storage.storeResizedImage(name, size, data);
+                    return data;
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException("Image resize failed", e);
+                }
+            } else {
+                log.info("Image {} has size {}, using original for size {}", name, originalSize, size);
+                storage.storeResizedImage(name, size, existingImage.get());
+                return existingImage.get();
+            }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read resized image file", e);
+            throw new RuntimeException("failed to read resized image", e);
         }
     }
 
-    private int getImageMaxDimension(String name) throws IOException {
-        String ext = name.substring(name.lastIndexOf('.') + 1);
-
+    static int getImageMaxDimension(byte[] data, String ext) throws IOException {
         Iterator<ImageReader> iter = ImageIO.getImageReadersBySuffix(ext);
         if (iter.hasNext()) {
             ImageReader reader = iter.next();
 
-            try (ImageInputStream stream = new FileImageInputStream(Paths.get(basePath, "original", name).toFile())){
+            try (ImageInputStream stream = new MemoryCacheImageInputStream(new ByteArrayInputStream(data))){
                 reader.setInput(stream);
                 int width = reader.getWidth(reader.getMinIndex());
                 int height = reader.getHeight(reader.getMinIndex());
@@ -197,20 +181,7 @@ public class ImageService {
                 reader.dispose();
             }
         } else {
-            throw new IllegalStateException("No image reader for file " + name);
-        }
-    }
-
-    private Path prepareDir(String... path) throws IOException {
-        Path target = Paths.get(basePath, path);
-        if (Files.exists(target)) {
-            if (Files.isWritable(target)) {
-                return target;
-            } else {
-                throw new IllegalStateException(String.format("Directory '%s' is not writable", target));
-            }
-        } else {
-            return Files.createDirectories(target);
+            throw new IllegalStateException("No image reader for extension " + ext);
         }
     }
 

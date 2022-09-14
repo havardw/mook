@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -28,7 +27,7 @@ public class ImageController {
 
     @POST
     @Consumes({MediaType.APPLICATION_OCTET_STREAM})
-    public Response postImage(byte[] data, @Context SecurityContext securityContext, @Context UriInfo uriInfo) throws IOException {
+    public Response postImage(byte[] data, @Context SecurityContext securityContext, @Context UriInfo uriInfo) {
         log.info("POST for new image, {} bytes", data.length);
         Image image = imageService.saveImage(data, ((MookPrincipal) securityContext.getUserPrincipal()).getId());
         log.info("Saved image as {}", image.name());

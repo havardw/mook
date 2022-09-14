@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,7 +33,7 @@ public class ImageServiceTest {
     @BeforeEach
     public void setUp() throws Exception {
         base = Files.createTempDirectory("ImageServiceTest");
-        service = new ImageService(base.toString(), ds, null);
+        service = new ImageService(new FileImageStorage(base.toString()), ds, Executors.newSingleThreadExecutor());
 
     }
 
@@ -73,5 +74,15 @@ public class ImageServiceTest {
         byte[] img = Files.readAllBytes(Paths.get(imageUrl.toURI()));
 
         assertThatThrownBy(() -> service.saveImage(img, 2)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void resizedJpeg() throws Exception {
+        URL imageUrl = getClass().getResource("/photo-4k.jpg");
+        byte[] original = Files.readAllBytes(Paths.get(imageUrl.toURI()));
+        Image result = service.saveImage(original, 2);
+
+        byte[] resized = service.getResizedImage(200, result.name());
+        assertThat(ImageService.getImageMaxDimension(resized, "jpg")).isLessThanOrEqualTo(200);
     }
 }
