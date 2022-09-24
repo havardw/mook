@@ -7,9 +7,9 @@ Mook requires Java 17 and a recent version of Maven.
 ## Configuration
 Configuration for database (Azure SQL), file storage and OAuth need to be set for each instance.
 See [Quarkus config documentation](https://quarkus.io/guides/config-reference) for
-alternatives.
+alternatives on how to set configuration.
 * Database property `quarkus.datasource.jdbc.url` need to be set, with `quarkus.datasource.username` and `quarkus.datasource.password`
-* Path to image storage must be set in `mook.image.path`
+* Path to image storage must be configured, _either_ a file path for `mook.image.path` _or_ an Azure Blob Storage connect string in `azure.blob.connect` 
 * Google client ID and callback URL must be set in `google.clientId` and `google.targetUrl`
 * Display name and instance prefix may be set with `mook.name` and `mook.prefix`
 
@@ -22,7 +22,7 @@ QUARKUS_DATASOURCE_PASSWORD=***
 MOOK_NAME=Lokal utvikling
 MOOK_PREFIX=dev
 
-MOOK_IMAGE_PATH=/home/data/mook-dev/img
+MOOK_IMAGE_PATH=/home/user/mook-dev/img
 
 GOOGLE_CLIENTID=xxxxx.apps.googleusercontent.com
 GOOGLE_TARGETURL=http://localhost:8080
