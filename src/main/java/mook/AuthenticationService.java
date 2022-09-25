@@ -16,6 +16,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -60,8 +61,10 @@ public class AuthenticationService {
             }
 
             return auth;
-        } catch (Exception se) {
-            throw new RuntimeException("Database error", se);
+        } catch (SQLException se) {
+            throw new RuntimeException("Database error for login", se);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to use SHA-512");
         }
     }
 
