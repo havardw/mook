@@ -30,7 +30,7 @@ public class EntryService {
             ResultSet rs = con.createStatement().executeQuery("SELECT e.id, e.entrydate, e.entryText, u.name " +
                                                               "FROM entry e,users u WHERE e.userId = u.id " +
                                                               "ORDER BY e.entrydate DESC, id DESC " +
-                                                              "OFFSET " + offset + " ROWS FETCH NEXT " + count + " ROWS ONLY");
+                                                              "LIMIT " + count + " OFFSET " + offset);
             while (rs.next()) {
                 int id = rs.getInt("id");
                 result.put(id, new Entry(id, rs.getString("name"), rs.getString("entrytext"), rs.getDate("entrydate")));

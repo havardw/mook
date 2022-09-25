@@ -41,7 +41,6 @@ public class AuthenticationService {
         try (Connection con = dataSource.getConnection()) {
             AuthenticationData auth;
 
-            // Hashing in Java rather than DB because the DB function will give different results for varchar and nvarchar
             MessageDigest digest = MessageDigest.getInstance("SHA-512");
             byte[] hash = digest.digest(loginData.password().getBytes(StandardCharsets.UTF_8));
 

@@ -1,26 +1,26 @@
 
 CREATE TABLE users (
-    id int IDENTITY PRIMARY KEY,
-    name nvarchar(40) NOT NULL,
-    email nvarchar(191) NOT NULL,
+    id int AUTO_INCREMENT PRIMARY KEY,
+    name varchar(40) NOT NULL,
+    email varchar(191) NOT NULL,
     hash binary(64),
     UNIQUE (email)
 );
 
 CREATE TABLE entry (
-    id int IDENTITY PRIMARY KEY,
+    id int AUTO_INCREMENT PRIMARY KEY,
     entryDate date NOT NULL,
-    entryText ntext NOT NULL,
+    entryText text NOT NULL,
     userId int NOT NULL,
     CONSTRAINT FK_Entry_User FOREIGN KEY (userId) REFERENCES users (id)
 );
 
 CREATE TABLE image (
-    id int IDENTITY PRIMARY KEY,
+    id int AUTO_INCREMENT PRIMARY KEY,
     entryId int,
     userId int NOT NULL,
-    mimeType nvarchar(40) NOT NULL,
-    caption ntext,
+    mimeType varchar(40) NOT NULL,
+    caption text,
     CONSTRAINT FK_Image_User FOREIGN KEY (userId) REFERENCES users (id)
 );
 
