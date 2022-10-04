@@ -1,6 +1,6 @@
 {
   "name": "mook",
-  "version": "0.5.1",
+  "version": "0.5.2-SNAPSHOT",
   "description": "Mook JavaScript build",
   "scripts": {
     "build": "webpack --mode production",
