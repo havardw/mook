@@ -45,7 +45,7 @@ public class AuthenticationService {
             byte[] hash = digest.digest(loginData.password().getBytes(StandardCharsets.UTF_8));
 
             // Verify password and get user data
-            try (PreparedStatement ps = con.prepareStatement("select id, name from users where email=? and hash=?")) {
+            try (PreparedStatement ps = con.prepareStatement("select id, name from users where email=? and hash=? and active=true")) {
                 ps.setString(1, loginData.email());
                 ps.setBytes(2, hash);
 
