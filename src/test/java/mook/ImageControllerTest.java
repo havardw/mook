@@ -11,7 +11,6 @@ import jakarta.ws.rs.core.UriInfo;
 
 
 import java.net.URI;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
