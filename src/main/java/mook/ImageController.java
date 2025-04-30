@@ -3,9 +3,9 @@ package mook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;

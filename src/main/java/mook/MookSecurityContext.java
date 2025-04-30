@@ -1,6 +1,6 @@
 package mook;
 
-import javax.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
 class MookSecurityContext implements SecurityContext {
