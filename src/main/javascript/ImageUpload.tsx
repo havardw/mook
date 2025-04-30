@@ -37,7 +37,7 @@ class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
                 "Content-Type": "application/octet-stream"
             },
             onUploadProgress: (event) => {
-                let percent = (event.loaded / event.total) * 100;
+                let percent = event.total ? (event.loaded / event.total) * 100 : 0;
                 this.setState({percentage: percent});
             }
         };
