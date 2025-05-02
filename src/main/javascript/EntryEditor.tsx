@@ -29,6 +29,7 @@ function isoDate(date: Date | string) {
 
 interface EntryEditorProps {
     userData: AuthenticationData;
+    site: string;
     onHttpError(error: AxiosError): void;
     onEntryAdded(entry: Entry): void;
 }
@@ -104,7 +105,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         event.preventDefault();
         console.info("Entry ", this.state.entry);
 
-        axios.post("api/entry", this.state.entry, { headers: { auth: this.props.userData.token }})
+        axios.post("api/entry/" + this.props.site, this.state.entry, { headers: { auth: this.props.userData.token }})
             .then((response) => {
                 this.props.onEntryAdded(response.data);
 
@@ -159,7 +160,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
         this.setState({entry: entry});
 
-        axios.delete("api/image/original/" + image.name, { headers: { auth: this.props.userData.token }})
+        axios.delete("api/image/" + this.props.site + "/original/" + image.name, { headers: { auth: this.props.userData.token }})
             .then(function() {
                 console.info("Deleted image " + image.name);
             })
@@ -190,14 +191,16 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
     render() {
         let images = this.state.entry.images.map((image, index) => <ImageEditor key={image.id} image={image} index={index}
+                                                                                site={this.props.site}
                                                                                 userData={this.props.userData}
                                                                                 onCaptionChange={this.handleCaptionChange}
                                                                                 onRemove={this.handleRemoveImage}/>);
 
         let imageUploads = this.state.uploads.map((upload) => <ImageUpload key={upload.name} file={upload}
-                                                                             userData={this.props.userData}
-                                                                             onImageUpload={this.handleImageUploaded}
-                                                                             onUploadFailed={this.handleUploadFailed}/>);
+                                                                           site={this.props.site}
+                                                                           userData={this.props.userData}
+                                                                           onImageUpload={this.handleImageUploaded}
+                                                                           onUploadFailed={this.handleUploadFailed}/>);
 
         return  (
             <form onSubmit={this.handleSubmit}>

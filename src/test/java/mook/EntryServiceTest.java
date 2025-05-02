@@ -34,7 +34,7 @@ public class EntryServiceTest {
     public void saveEntry() {
         TestDatabase.insert(ds, "insert into image (userId, mimeType) values (?, ?)", 1, "image/test");
 
-        int id = service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(1, null, "Test")), 1);
+        int id = service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(1, null, "Test")), 1, 1);
 
         Map<String, Object> entry = TestDatabase.querySingleRow(ds, "entry", "id", id);
         assertThat(entry.get("entrytext")).isEqualTo("Entry");
@@ -46,7 +46,7 @@ public class EntryServiceTest {
 
     @Test()
     public void saveEntryWithMissingImage() {
-        assertThatThrownBy(() -> service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(2, null, "Test")), 1))
+        assertThatThrownBy(() -> service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(2, null, "Test")), 1, 1))
                 .isInstanceOf(IllegalStateException.class);
     }
 

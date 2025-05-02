@@ -4,6 +4,7 @@ import {ImageLoader} from "./ImageLoader";
 
 interface ImageProps {
     userData: AuthenticationData,
+    site: string,
     image: ImageData
 }
 
@@ -17,7 +18,7 @@ class Image extends React.Component<ImageProps, {}> {
         return (
             <div className="image">
                 <div className="wrapper">
-                    <ImageLoader userData={this.props.userData} image={this.props.image} />
+                    <ImageLoader site={this.props.site} userData={this.props.userData} image={this.props.image} />
                 </div>
 
                 <div className="caption">{this.props.image.caption}</div>

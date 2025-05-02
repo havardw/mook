@@ -10,24 +10,29 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.SecurityContext;
 import java.util.Collection;
 
-@Path("/api/entry")
+@Path("/api/entry/{site}")
 public class EntryController {
 
     private static final Logger log = LoggerFactory.getLogger(EntryController.class);
 
 	private final EntryService entryService;
+	private final PermissionsService permissionsService;
 
     @Inject
-    public EntryController(EntryService entryService) {
+    public EntryController(EntryService entryService, PermissionsService permissionsService) {
         this.entryService = entryService;
+        this.permissionsService = permissionsService;
     }
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    public Collection<Entry> getEntries(@QueryParam("limit") Integer limit, @QueryParam("offset") Integer offset) {
-    	log.info("Request for {} entries from offset {}", limit, offset);
+    public Collection<Entry> getEntries(@PathParam("site") String siteSlug, @QueryParam("limit") Integer limit, @QueryParam("offset") Integer offset, @Context SecurityContext securityContext) {
+        MookPrincipal principal = (MookPrincipal) securityContext.getUserPrincipal();
+        int siteId = permissionsService.checkUserHasAccess(siteSlug, principal.getId());
 
-    	int verifiedLimit;
+        log.info("Request for {} entries from offset {} for site {}", limit, offset, siteId);
+
+        int verifiedLimit;
     	if (limit == null || limit < 0) {
     	    verifiedLimit = 20;
         } else {
@@ -40,10 +45,10 @@ public class EntryController {
         } else {
     	    verifiedOffset = offset;
         }
+
+        Collection<Entry> entries = entryService.getEntries(siteId, verifiedOffset, verifiedLimit);
     
-        Collection<Entry> entries = entryService.getEntries(verifiedOffset, verifiedLimit);
-    
-    	log.info("Returned {} entries", entries.size());
+    	log.info("Returned {} entries for site {}", entries.size(), siteSlug);
 
     	return entries;
     }
@@ -52,14 +57,17 @@ public class EntryController {
      
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
-    public Entry postEntry(Entry entry, @Context SecurityContext securityContext) {
-    	log.info("POST for new entry");
-    	
-    	int id = entryService.saveEntry(entry.text(), entry.date(), entry.images(),
-                               ((MookPrincipal)securityContext.getUserPrincipal()).getId());
+    public Entry postEntry(@PathParam("site") String siteSlug, Entry entry, @Context SecurityContext securityContext) {
+        MookPrincipal principal = (MookPrincipal) securityContext.getUserPrincipal();
+        int siteId = permissionsService.checkUserHasAccess(siteSlug, principal.getId());
 
-    	log.info("Inserted new entry from {}", securityContext.getUserPrincipal().getName());
+        log.info("POST for new entry for site {}", siteId);
+    
+        int id = entryService.saveEntry(entry.text(), entry.date(), entry.images(),
+                               principal.getId(), siteId);
 
-    	return new Entry(id, ((MookPrincipal)securityContext.getUserPrincipal()).getDisplayName(), entry.text(), entry.date(), entry.images());
+    	log.info("Inserted new entry from {} for site {}", securityContext.getUserPrincipal().getName(), siteSlug);
+
+    	return new Entry(id, principal.getDisplayName(), entry.text(), entry.date(), entry.images());
    }
 }

@@ -180,7 +180,8 @@ class MookApp extends React.Component<{}, ApplicationState> {
             return (<em>Vent litt...</em>);
         }
         else {
-            return (<Entries onHttpError={this.handleHttpError} userData={this.state.userData!} />);
+            // TODO From local state
+            return (<Entries site={"standard"} onHttpError={this.handleHttpError} userData={this.state.userData!} />);
         }
 
     }

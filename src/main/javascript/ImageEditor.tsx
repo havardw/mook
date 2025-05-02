@@ -3,7 +3,8 @@ import {AuthenticationData, Image as ImageData} from "./domain";
 import {ImageLoader} from "./ImageLoader";
 
 interface ImageEditorProps {
-    image: ImageData,
+    image: ImageData;
+    site: string;
     index: number;
     userData: AuthenticationData;
     onCaptionChange(value: string, index: number): void;
@@ -43,7 +44,7 @@ class ImageEditor extends React.Component<ImageEditorProps, ImageEditorState> {
         return (
             <div className="image">
                 <div className="wrapper">
-                    <ImageLoader userData={this.props.userData} image={this.props.image} />
+                    <ImageLoader site={this.props.site} userData={this.props.userData} image={this.props.image} />
                     <img className="close" src="img/close.svg" alt="Slett bilde" width="20" height="20" onClick={this.handleRemove} />
                 </div>
 

@@ -54,32 +54,32 @@ public class ImageService {
         this.resizeExecutor = executor;
     }
 
-    public Image saveImage(byte[] data, int userId) {
-
+    public Image saveImage(byte[] data, int userId, int siteId) {
         String mimeType = checkMimeType(data);
         try (Connection con = ds.getConnection()) {
             con.setAutoCommit(false);
-
+    
             int id;
-            try (PreparedStatement ps = con.prepareStatement("insert into image (userId, mimeType) values (?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            try (PreparedStatement ps = con.prepareStatement("insert into image (userId, mimeType, siteId) values (?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, userId);
                 ps.setString(2, mimeType);
+                ps.setInt(3, siteId);
                 ps.executeUpdate();
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     rs.next();
                     id = rs.getInt(1);
                 }
             }
-
+    
             String ext = extensionFromMimeType(mimeType);
             String fileName = String.format("%d.%s", id, ext);
-
+    
             storage.storeImage(fileName, data);
-
+    
             con.commit();
-
-            log.info("Saved image {}", fileName);
-
+    
+            log.info("Saved image {} for site {}", fileName, siteId);
+    
             return new Image(id, fileName, null);
         } catch (IOException ioe) {
             throw new RuntimeException("Failed to save file to file system", ioe);
@@ -87,42 +87,48 @@ public class ImageService {
             throw new RuntimeException("Database error when saving file", sqle);
         }
     }
+    
 
-    public byte[] readImage(String name) {
+    public byte[] readImage(String name, int siteId) {
+        verifyImageSite(name, siteId);
         try {
             return storage.readImage(name).orElse(null);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read image");
         }
     }
+    
 
-    public void deleteImage(String name, int userId) {
+    public void deleteImage(String name, int userId, int siteId) {
+        verifyImageSite(name, siteId);
         try (Connection con = ds.getConnection()) {
             con.setAutoCommit(false);
-
+    
             int id = Integer.parseInt(name.substring(0, name.indexOf('.')));
-
-            try (PreparedStatement ps = con.prepareStatement("delete from image where id=? and userId=?")) {
+    
+            try (PreparedStatement ps = con.prepareStatement("delete from image where id=? and userId=? and siteId=?")) {
                 ps.setInt(1, id);
                 ps.setInt(2, userId);
+                ps.setInt(3, siteId);
                 int rows = ps.executeUpdate();
                 if (rows != 1) {
                     throw new RuntimeException("Failed to delete image with id " + id + " from database");
                 }
             }
-
+    
             storage.deleteImage(name);
-
+    
             con.commit();
-            log.info("Deleted image {}", name);
+            log.info("Deleted image {} for site {}", name, siteId);
         } catch (IOException ioe) {
             throw new RuntimeException("Failed to delete image", ioe);
         } catch (SQLException sqle) {
             throw new RuntimeException("Database error when deleting image", sqle);
         }
     }
-
-    public byte[] getResizedImage(int size, String name) {
+    
+    public byte[] getResizedImage(int size, String name, int siteId) {
+        verifyImageSite(name, siteId);
         try {
             var existingResize = storage.readResizedImage(name, size);
             if (existingResize.isPresent()) {
@@ -185,6 +191,35 @@ public class ImageService {
         }
     }
 
+    /**
+     * Verifies that an image belongs to a specific site.
+     * 
+     * @param name The name of the image
+     * @param siteId The ID of the site to check against
+     * @throws SecurityException if the image does not belong to the specified site
+     */
+    private void verifyImageSite(String name, int siteId) {
+        try (Connection con = ds.getConnection()) {
+            int id = Integer.parseInt(name.substring(0, name.indexOf('.')));
+            
+            try (PreparedStatement ps = con.prepareStatement("SELECT 1 FROM image WHERE id = ? AND siteId = ?")) {
+                ps.setInt(1, id);
+                ps.setInt(2, siteId);
+                
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new RuntimeException("Image does not belong to this site");
+                    }
+                }
+            }
+        } catch (SQLException sqle) {
+            log.error("Database error when verifying image site ownership", sqle);
+            throw new RuntimeException("Could not verify image site ownership", sqle);
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Invalid image name format", nfe);
+        }
+    }
+    
     private static String checkMimeType(byte[] data) {
         if (arrayStartsWith(data, MAGIC_PNG)) {
             return MIME_PNG;

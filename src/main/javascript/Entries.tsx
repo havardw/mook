@@ -10,12 +10,13 @@ const PAGE_SIZE = 10;
 
 interface EntryProps {
     entry: EntryData;
+    site: string;
     userData: AuthenticationData;
 }
 
 function Entry(props: EntryProps) {
 
-    const images = props.entry.images.map((image) => <Image key={image.id} image={image} userData={props.userData} />);
+    const images = props.entry.images.map((image) => <Image key={image.id} site={props.site} image={image} userData={props.userData} />);
 
     return (
         <article className="entry">
@@ -73,6 +74,7 @@ function friendlyDate(date: string) {
 
 interface EntriesProps {
     userData: AuthenticationData;
+    site: string;
     onHttpError(error: AxiosError): void
 }
 
@@ -103,7 +105,7 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
     load = () => {
         console.info("Loading entries from offset " + this.state.offset);
         this.setState({loading: true});
-        axios.get("api/entry?limit=" + PAGE_SIZE + "&offset=" + this.state.offset, { headers: { auth: this.props.userData.token }})
+        axios.get("api/entry/" + this.props.site + "?limit=" + PAGE_SIZE + "&offset=" + this.state.offset, { headers: { auth: this.props.userData.token }})
             .then(response => {
                 if (response.data.length === 0) {
                     this.setState({loading: false, complete: true});
@@ -165,14 +167,14 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
 
     render() {
         const entries = this.state.entries.map((entry) =>
-           <Entry key={entry.id} entry={entry} userData={this.props.userData} />
+           <Entry key={entry.id} site={this.props.site} entry={entry} userData={this.props.userData} />
         );
 
         return (
             <div onScroll={this.handleScroll}>
                 <h2>Skriv en melding</h2>
 
-                <EntryEditor userData={this.props.userData} onHttpError={this.props.onHttpError} onEntryAdded={this.handleEntryAdded} />
+                <EntryEditor site={this.props.site} userData={this.props.userData} onHttpError={this.props.onHttpError} onEntryAdded={this.handleEntryAdded} />
 
                 <div id="entryContainer">{entries}</div>
 

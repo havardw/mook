@@ -13,24 +13,30 @@ import java.util.Date;
 /**
  * REST endpoint for images.
  */
-@Path("/api/image")
+@Path("/api/image/{site}")
 public class ImageController {
     
     private static final Logger log = LoggerFactory.getLogger(ImageController.class);
 
     private final ImageService imageService;
+    private final PermissionsService permissionsService;
 
     @Inject
-    public ImageController(ImageService imageService) {
+    public ImageController(ImageService imageService, PermissionsService permissionsService) {
         this.imageService = imageService;
+        this.permissionsService = permissionsService;
     }
 
     @POST
     @Consumes({MediaType.APPLICATION_OCTET_STREAM})
-    public Response postImage(byte[] data, @Context SecurityContext securityContext, @Context UriInfo uriInfo) {
-        log.info("POST for new image, {} bytes", data.length);
-        Image image = imageService.saveImage(data, ((MookPrincipal) securityContext.getUserPrincipal()).getId());
-        log.info("Saved image as {}", image.name());
+    public Response postImage(byte[] data, @PathParam("site") String siteSlug, @Context SecurityContext securityContext, @Context UriInfo uriInfo) {
+        MookPrincipal principal = (MookPrincipal) securityContext.getUserPrincipal();
+        int siteId = permissionsService.checkUserHasAccess(siteSlug, principal.getId());
+
+        log.info("POST for new image, {} bytes for site {}", data.length, siteId);
+        
+        Image image = imageService.saveImage(data, principal.getId(), siteId);
+        log.info("Saved image as {} for site {}", image.name(), siteSlug);
 
         // We want an URI without host, so start from the path
         UriBuilder uriBuilder = UriBuilder.fromUri(uriInfo.getRequestUri().getPath());
@@ -43,26 +49,35 @@ public class ImageController {
     @GET
     @Path("original/{name}")
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
-    public Response getOriginalImage(@PathParam("name") String name) {
-        return serveImageResponse(imageService.readImage(name), name);
+    public Response getOriginalImage(@PathParam("site") String siteSlug, @PathParam("name") String name, @Context SecurityContext securityContext) {
+        MookPrincipal principal = (MookPrincipal) securityContext.getUserPrincipal();
+        int siteId = permissionsService.checkUserHasAccess(siteSlug, principal.getId());
+        
+        return serveImageResponse(imageService.readImage(name, siteId), name);
     }
 
     @DELETE
     @Path("original/{name}")
-    public void deleteImage(@PathParam("name") String name, @Context SecurityContext securityContext) {
-        imageService.deleteImage(name, ((MookPrincipal)securityContext.getUserPrincipal()).getId());
+    public void deleteImage(@PathParam("site") String siteSlug, @PathParam("name") String name, @Context SecurityContext securityContext) {
+        MookPrincipal principal = (MookPrincipal) securityContext.getUserPrincipal();
+        int siteId = permissionsService.checkUserHasAccess(siteSlug, principal.getId());
+        
+        imageService.deleteImage(name, principal.getId(), siteId);
     }
 
     @GET
     @Path("resized/{size}/{name}")
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
-    public Response getResizedImage(@PathParam("size") int size, @PathParam("name") String name) {
+    public Response getResizedImage(@PathParam("site") String siteSlug, @PathParam("size") int size, @PathParam("name") String name, @Context SecurityContext securityContext) {
         if (size < 0 || size > 1500) {
             log.warn("Can't resize to {} px", size);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-
-        return serveImageResponse(imageService.getResizedImage(size, name), name);
+    
+        MookPrincipal principal = (MookPrincipal) securityContext.getUserPrincipal();
+        int siteId = permissionsService.checkUserHasAccess(siteSlug, principal.getId());
+        
+        return serveImageResponse(imageService.getResizedImage(size, name, siteId), name);
     }
 
     private Response serveImageResponse(byte[] data, String name) {

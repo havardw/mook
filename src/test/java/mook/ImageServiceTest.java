@@ -48,7 +48,7 @@ public class ImageServiceTest {
 
         byte[] img = Files.readAllBytes(Paths.get(imageUrl.toURI()));
 
-        Image result = service.saveImage(img, 2);
+        Image result = service.saveImage(img, 2, 1);
 
         assertThat(result.name()).matches("\\d+\\.png");
         Path imgPath = Paths.get(base.toString(), "original", result.name());
@@ -60,7 +60,7 @@ public class ImageServiceTest {
         URL imageUrl = getClass().getResource("/image.jpg");
         byte[] img = Files.readAllBytes(Paths.get(imageUrl.toURI()));
 
-        Image result = service.saveImage(img, 2);
+        Image result = service.saveImage(img, 2, 1);
 
         assertThat(result.name()).matches("\\d+\\.jpg");
         Path imgPath = Paths.get(base.toString(), "original", result.name());
@@ -73,16 +73,16 @@ public class ImageServiceTest {
         URL imageUrl = getClass().getResource("/image.gif");
         byte[] img = Files.readAllBytes(Paths.get(imageUrl.toURI()));
 
-        assertThatThrownBy(() -> service.saveImage(img, 2)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> service.saveImage(img, 2, 1)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void resizedJpeg() throws Exception {
         URL imageUrl = getClass().getResource("/photo-4k.jpg");
         byte[] original = Files.readAllBytes(Paths.get(imageUrl.toURI()));
-        Image result = service.saveImage(original, 2);
+        Image result = service.saveImage(original, 2, 1);
 
-        byte[] resized = service.getResizedImage(200, result.name());
+        byte[] resized = service.getResizedImage(200, result.name(), 1);
         assertThat(ImageService.getImageMaxDimension(resized, "jpg")).isLessThanOrEqualTo(200);
     }
 }

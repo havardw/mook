@@ -4,6 +4,7 @@ import {AuthenticationData, Image} from "./domain";
 
 interface ImageUploadProps {
     userData: AuthenticationData;
+    site: string;
     file: File;
     onUploadFailed(file: File): void;
     onImageUpload(image: Image, name: string): void;
@@ -44,7 +45,7 @@ class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
 
 
 
-        axios.post("api/image", this.props.file, config)
+        axios.post("api/image/" + this.props.site, this.props.file, config)
             .then((response) => {
                 console.log("Image uploaded: " + JSON.stringify(response.data));
                 this.props.onImageUpload(response.data, this.props.file.name);
