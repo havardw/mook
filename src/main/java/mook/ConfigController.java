@@ -18,8 +18,6 @@ import java.util.*;
 @Path("/api/config.js")
 public class ConfigController {
 
-    @ConfigProperty(name = "mook.name", defaultValue = "Mook")
-    String name;
 
     @ConfigProperty(name = "google.clientId")
     String googleClientId;
@@ -31,7 +29,6 @@ public class ConfigController {
     @Produces("application/javascript")
     public String config() {
         Map<String, Object> map = new HashMap<>();
-        map.put("name", name);
         map.put("googleId", googleClientId);
         map.put("googleTargetUrl", googleTargetUrl);
 

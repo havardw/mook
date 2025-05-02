@@ -8,9 +8,9 @@ window.addEventListener("DOMContentLoaded",
 
         let appElem = document.getElementById("applicationName");
         if (appElem != null) {
-            appElem.innerText = mookConfig.name;
+            appElem.innerText = "Mook";
         }
-        document.title = mookConfig.name;
+        document.title = "Mook";
 
         const root = createRoot(document.getElementById("root")!);
         root.render(<MookApp />);

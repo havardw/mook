@@ -3,7 +3,7 @@ import * as React from "react";
 
 interface SiteSelectorProps {
     sites: SitePermission[];
-    onSelect: (site: string) => void;
+    onSelect: (site: string, siteName: string) => void;
 }
 
 export const SiteSelector: React.FC<SiteSelectorProps> = ({sites, onSelect}) => {
@@ -22,7 +22,7 @@ export const SiteSelector: React.FC<SiteSelectorProps> = ({sites, onSelect}) => 
             {sites.map(site => (
                 <button
                     key={site.path}
-                    onClick={() => onSelect(site.path)}
+                    onClick={() => onSelect(site.path, site.name)}
                 >
                     {site.name}
                 </button>

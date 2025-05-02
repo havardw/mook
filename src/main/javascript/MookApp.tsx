@@ -131,8 +131,18 @@ class MookApp extends React.Component<{}, ApplicationState> {
         this.setState({userData: userData, loginState: "loggedIn"});
         // Set site to active if we only have exactly one
         if (userData.sitePermissions.length === 1) {
-            this.setState({site: userData.sitePermissions[0].path})
+            const selectedSite = userData.sitePermissions[0];
+            this.setState({site: selectedSite.path});
+            this.updateSiteName(selectedSite.name);
         }
+    };
+
+    updateSiteName = (siteName: string): void => {
+        let appElem = document.getElementById("applicationName");
+        if (appElem != null) {
+            appElem.innerText = siteName;
+        }
+        document.title = siteName;
     };
 
     handleHttpError = (error: AxiosError): void => {
@@ -173,7 +183,10 @@ class MookApp extends React.Component<{}, ApplicationState> {
             return (
                 <SiteSelector
                     sites={this.state.userData!.sitePermissions}
-                    onSelect={(site) => this.setState({site})}
+                    onSelect={(site, siteName) => {
+                        this.setState({site});
+                        this.updateSiteName(siteName);
+                    }}
                 />
             );
         }
