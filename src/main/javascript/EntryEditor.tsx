@@ -5,7 +5,7 @@ import ImageEditor from "./ImageEditor";
 import ImageUpload from "./ImageUpload";
 import {AuthenticationData, Entry, Image} from "./domain";
 
-const ENTRY_AUTOSAVE_KEY = "mook." + mookConfig.prefix + ".entry.autosave";
+const ENTRY_AUTOSAVE_PREFIX = "mook.entry.autosave.";
 
 function createNewEntry() {
     return {
@@ -48,14 +48,8 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
     constructor(props: EntryEditorProps) {
         super(props);
 
-        // Check auto save, and transition from old format
-        let autoSave = window.localStorage.getItem("mook.entry.autosave");
-        if (autoSave !== null) {
-            window.localStorage.removeItem("mook.entry.autosave");
-            window.localStorage.setItem(ENTRY_AUTOSAVE_KEY, autoSave);
-        } else {
-            autoSave = window.localStorage.getItem(ENTRY_AUTOSAVE_KEY);
-        }
+        // Check auto save for site
+        const autoSave = window.localStorage.getItem(ENTRY_AUTOSAVE_PREFIX + this.props.site);
 
         let entry;
         if (autoSave !== null) {
@@ -74,9 +68,9 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
     save = () => {
         // Only save entry if we have content, else we mess up the date when opening the app later
         if (this.state.entry.text !== "" || this.state.entry.images.length > 0) {
-            window.localStorage.setItem(ENTRY_AUTOSAVE_KEY, JSON.stringify(this.state.entry));
+            window.localStorage.setItem(ENTRY_AUTOSAVE_PREFIX + this.props.site, JSON.stringify(this.state.entry));
         } else {
-            window.localStorage.removeItem(ENTRY_AUTOSAVE_KEY);
+            window.localStorage.removeItem(ENTRY_AUTOSAVE_PREFIX + this.props.site);
         }
     };
 

@@ -7,9 +7,9 @@ import {parseQuery} from "./utils";
 import {AuthenticationData } from "./domain";
 import { SiteSelector } from "./SiteSelector";
 
-const USER_DATA_KEY = "mook." + mookConfig.prefix + ".userData";
+const USER_DATA_KEY = "mook.userData";
 
-export const OAUTH_STATE_KEY = "mook." + mookConfig.prefix + ".oauthState";
+export const OAUTH_STATE_KEY = "mook.oauthState";
 
 interface ApplicationState {
     loginState: string;
@@ -31,24 +31,9 @@ class MookApp extends React.Component<{}, ApplicationState> {
         let supportedBrowser = (!!(window.ProgressEvent)) && (!!(window.FormData))  // Checks for XHR 2
                                && (!!window.Promise); // Require native promise support
 
-        // Check for saved login, legacy format first, convert to new format if found
-        let userDataStr = window.sessionStorage.getItem("mook.userData");
-        if (userDataStr !== null) {
-            window.sessionStorage.removeItem("mook.userData");
-            window.sessionStorage.setItem(USER_DATA_KEY, JSON.stringify(userDataStr))
-        } else {
-            userDataStr = window.localStorage.getItem("mook.userData");
-            if (userDataStr !== null) {
-                window.localStorage.removeItem("mook.userData");
-                window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userDataStr))
-            }
-        }
-        // Check for new format
+        let userDataStr = window.sessionStorage.getItem(USER_DATA_KEY);
         if (userDataStr === null) {
-            userDataStr = window.sessionStorage.getItem(USER_DATA_KEY);
-            if (userDataStr === null) {
-                userDataStr = window.localStorage.getItem(USER_DATA_KEY)
-            }
+            userDataStr = window.localStorage.getItem(USER_DATA_KEY)
         }
 
         let loginState: string;

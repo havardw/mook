@@ -21,9 +21,6 @@ public class ConfigController {
     @ConfigProperty(name = "mook.name", defaultValue = "Mook")
     String name;
 
-    @ConfigProperty(name = "mook.prefix", defaultValue = "default")
-    String prefix;
-
     @ConfigProperty(name = "google.clientId")
     String googleClientId;
 
@@ -35,7 +32,6 @@ public class ConfigController {
     public String config() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
-        map.put("prefix", prefix);
         map.put("googleId", googleClientId);
         map.put("googleTargetUrl", googleTargetUrl);
 
