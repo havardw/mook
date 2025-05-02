@@ -4,7 +4,8 @@ import axios, {AxiosError} from "axios";
 import Login from "./Login";
 import Entries from "./Entries";
 import {parseQuery} from "./utils";
-import {AuthenticationData} from "./domain";
+import {AuthenticationData } from "./domain";
+import { SiteSelector } from "./SiteSelector";
 
 const USER_DATA_KEY = "mook." + mookConfig.prefix + ".userData";
 
@@ -13,11 +14,12 @@ export const OAUTH_STATE_KEY = "mook." + mookConfig.prefix + ".oauthState";
 interface ApplicationState {
     loginState: string;
     userData?: AuthenticationData;
+    site?: string;
     globalError?: string;
     supportedBrowser: boolean;
     rememberOidcLogin: boolean;
     oidcAccessToken?: string;
-    oidcError?: {code: string; email: string}
+    oidcError?: { code: string; email: string };
 }
 
 class MookApp extends React.Component<{}, ApplicationState> {
@@ -142,6 +144,11 @@ class MookApp extends React.Component<{}, ApplicationState> {
         }
 
         this.setState({userData: userData, loginState: "loggedIn"});
+        // Set site to active if we only have exactly one
+        if (Object.keys(userData.sitePermissions).length === 1) {
+            this.setState({site: Object.keys(userData.sitePermissions)[0]})
+
+        }
     };
 
     handleHttpError = (error: AxiosError): void => {
@@ -178,10 +185,16 @@ class MookApp extends React.Component<{}, ApplicationState> {
             return (<Login onLogin={this.handleLogin} oidcError={this.state.oidcError} />);
         } else if (this.state.loginState === "resume" || this.state.loginState === "oidc") {
             return (<em>Vent litt...</em>);
+        } else if (!this.state.site) {
+            return (
+                <SiteSelector
+                    sites={this.state.userData!.sitePermissions}
+                    onSelect={(site) => this.setState({site})}
+                />
+            );
         }
         else {
-            // TODO From local state
-            return (<Entries site={"standard"} onHttpError={this.handleHttpError} userData={this.state.userData!} />);
+            return (<Entries site={this.state.site!} onHttpError={this.handleHttpError} userData={this.state.userData!} />);
         }
 
     }

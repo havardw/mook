@@ -1,5 +1,5 @@
 package mook;
-
+import java.util.HashMap;
 import io.quarkus.scheduler.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,7 +128,7 @@ public class AuthenticationService {
             ps.executeUpdate();
         }
 
-        return new AuthenticationData(userId, email, name, uuid);
+        return new AuthenticationData(userId, email, name, uuid, getSitePermissionsForUser(con, userId));
     }
 
     public boolean isAuthenticated(String token) {
@@ -149,25 +149,57 @@ public class AuthenticationService {
     
     public AuthenticationData getAuthenticationData(String token) {
         try (Connection conn = dataSource.getConnection()) {
-            String query = "select u.id, u.email, u.name " +
-                    "from users u, userSession us " +
-                    "where us.expires > CURRENT_TIMESTAMP and us.uuid=? and us.userId=u.id;";
-            try (PreparedStatement ps = conn.prepareStatement(query)) {
-                ps.setString(1, token);
+                // Get user data
+                String query = "select u.id, u.email, u.name " +
+                        "from users u, userSession us " +
+                        "where us.expires > CURRENT_TIMESTAMP and us.uuid=? and us.userId=u.id;";
+                try (PreparedStatement ps = conn.prepareStatement(query)) {
+                    ps.setString(1, token);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            int userId = rs.getInt("id");
+                            String email = rs.getString("email");
+                            String name = rs.getString("name");
+                            
+                            // Get permissions for this user
+                            Map<String, AuthenticationData.Permission> permissions = getSitePermissionsForUser(conn, userId);
+                            
+                            return new AuthenticationData(userId, email, name, token, permissions);
+                        } else {
+                            throw new AuthenticationException(AuthenticationException.Reason.SESSION_EXPIRED);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException("Database error", e);
+            }
+        }
+        
+        private Map<String, AuthenticationData.Permission> getSitePermissionsForUser(Connection conn, int userId) throws SQLException {
+            Map<String, AuthenticationData.Permission> permissions = new HashMap<>();
+            
+            String permQuery = "SELECT s.slug, p.permission " +
+                               "FROM permissions p " +
+                               "JOIN sites s ON p.siteId = s.id " +
+                               "WHERE p.userId = ?";
+            
+            try (PreparedStatement ps = conn.prepareStatement(permQuery)) {
+                ps.setInt(1, userId);
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        return new AuthenticationData(rs.getInt("id"),
-                                                      rs.getString("email"),
-                                                      rs.getString("name"),
-                                                      token);
-                    } else {
-                        throw new AuthenticationException(AuthenticationException.Reason.SESSION_EXPIRED);
+                    while (rs.next()) {
+                        String slug = rs.getString("slug");
+                        String permission = rs.getString("permission");
+                        
+                        if (permission.equalsIgnoreCase("admin")) {
+                            permissions.put(slug, AuthenticationData.Permission.ADMIN);
+                        } else if (permission.equalsIgnoreCase("edit")) {
+                            permissions.put(slug, AuthenticationData.Permission.EDIT);
+                        }
                     }
                 }
             }
-        } catch (SQLException e) {
-            throw new RuntimeException("Database error", e);
-        }
+            
+            return permissions;
     }
     
     public MookPrincipal getPrincipal(String token) {
