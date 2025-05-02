@@ -1,12 +1,18 @@
 
 export type Permission = 'ADMIN' | 'EDIT';
 
+export interface SitePermission {
+    name: string;
+    path: string;
+    permission: Permission;
+}
+
 export interface AuthenticationData {
     id: number;
     email: string;
     displayName: string;
     token: string;
-    sitePermissions: Record<string, Permission>;
+    sitePermissions: SitePermission[];
 }
 
 export interface Entry {

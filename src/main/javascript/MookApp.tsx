@@ -130,9 +130,8 @@ class MookApp extends React.Component<{}, ApplicationState> {
 
         this.setState({userData: userData, loginState: "loggedIn"});
         // Set site to active if we only have exactly one
-        if (Object.keys(userData.sitePermissions).length === 1) {
-            this.setState({site: Object.keys(userData.sitePermissions)[0]})
-
+        if (userData.sitePermissions.length === 1) {
+            this.setState({site: userData.sitePermissions[0].path})
         }
     };
 

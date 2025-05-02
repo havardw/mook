@@ -1,8 +1,8 @@
-import {Permission} from "./domain";
+import {SitePermission} from "./domain";
 import * as React from "react";
 
 interface SiteSelectorProps {
-    sites: Record<string, Permission>;
+    sites: SitePermission[];
     onSelect: (site: string) => void;
 }
 
@@ -19,12 +19,12 @@ export const SiteSelector: React.FC<SiteSelectorProps> = ({sites, onSelect}) => 
     return (
         <div style={SelectorWrapper}>
             <h2>Velg side</h2>
-            {Object.keys(sites).map(site => (
+            {sites.map(site => (
                 <button
-                    key={site}
-                    onClick={() => onSelect(site)}
+                    key={site.path}
+                    onClick={() => onSelect(site.path)}
                 >
-                    {site}
+                    {site.name}
                 </button>
             ))}
         </div>

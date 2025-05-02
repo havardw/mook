@@ -1,5 +1,6 @@
 package mook;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import io.quarkus.scheduler.Scheduled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,7 @@ import java.util.UUID;
 public class AuthenticationService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
-    
+
     private final DataSource dataSource;
 
     @Inject
@@ -146,7 +147,7 @@ public class AuthenticationService {
             throw new RuntimeException("Database error", e);
         }
     }
-    
+
     public AuthenticationData getAuthenticationData(String token) {
         try (Connection conn = dataSource.getConnection()) {
                 // Get user data
@@ -160,10 +161,10 @@ public class AuthenticationService {
                             int userId = rs.getInt("id");
                             String email = rs.getString("email");
                             String name = rs.getString("name");
-                            
+
                             // Get permissions for this user
-                            Map<String, AuthenticationData.Permission> permissions = getSitePermissionsForUser(conn, userId);
-                            
+                            List<SitePermission> permissions = getSitePermissionsForUser(conn, userId);
+
                             return new AuthenticationData(userId, email, name, token, permissions);
                         } else {
                             throw new AuthenticationException(AuthenticationException.Reason.SESSION_EXPIRED);
@@ -174,34 +175,40 @@ public class AuthenticationService {
                 throw new RuntimeException("Database error", e);
             }
         }
-        
-        private Map<String, AuthenticationData.Permission> getSitePermissionsForUser(Connection conn, int userId) throws SQLException {
-            Map<String, AuthenticationData.Permission> permissions = new HashMap<>();
-            
-            String permQuery = "SELECT s.slug, p.permission " +
+
+        private List<SitePermission> getSitePermissionsForUser(Connection conn, int userId) throws SQLException {
+            List<SitePermission> permissions = new ArrayList<>();
+
+            String permQuery = "SELECT s.name, s.slug, p.permission " +
                                "FROM permissions p " +
                                "JOIN sites s ON p.siteId = s.id " +
                                "WHERE p.userId = ?";
-            
+
             try (PreparedStatement ps = conn.prepareStatement(permQuery)) {
                 ps.setInt(1, userId);
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
+                        String name = rs.getString("name");
                         String slug = rs.getString("slug");
                         String permission = rs.getString("permission");
-                        
+
+                        AuthenticationData.Permission permEnum = null;
                         if (permission.equalsIgnoreCase("admin")) {
-                            permissions.put(slug, AuthenticationData.Permission.ADMIN);
+                            permEnum = AuthenticationData.Permission.ADMIN;
                         } else if (permission.equalsIgnoreCase("edit")) {
-                            permissions.put(slug, AuthenticationData.Permission.EDIT);
+                            permEnum = AuthenticationData.Permission.EDIT;
+                        }
+
+                        if (permEnum != null) {
+                            permissions.add(new SitePermission(name, slug, permEnum));
                         }
                     }
                 }
             }
-            
+
             return permissions;
     }
-    
+
     public MookPrincipal getPrincipal(String token) {
         AuthenticationData a = getAuthenticationData(token);
         return new MookPrincipal(a.id(), a.email(), a.displayName());
