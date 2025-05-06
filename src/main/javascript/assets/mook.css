@@ -54,7 +54,7 @@ button {
     position: relative;
 }
 button.loading::before {
-    content: url("../img/ajax-loader.gif");
+    content: url("ajax-loader.gif");
     position: absolute;
     left: 10px;
     top: 10px;
@@ -62,7 +62,7 @@ button.loading::before {
 
 
 div.loading::before {
-    content: url("../img/ajax-loader.gif");
+    content: url("ajax-loader.gif");
     padding-right: 5px;
 }
 

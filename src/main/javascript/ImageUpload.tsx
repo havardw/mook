@@ -1,6 +1,7 @@
 import * as React from "react";
-import axios, {AxiosError, AxiosRequestConfig} from "axios";
+import axios, {AxiosRequestConfig} from "axios";
 import {AuthenticationData, Image} from "./domain";
+import ajaxLoader from "./assets/ajax-loader.gif";
 
 interface ImageUploadProps {
     userData: AuthenticationData;
@@ -21,7 +22,7 @@ class ImageUpload extends React.Component<ImageUploadProps, ImageUploadState> {
         super(props);
 
         this.state = {
-            url: "img/ajax-loader.gif",
+            url: ajaxLoader,
             percentage: 0
         };
     }

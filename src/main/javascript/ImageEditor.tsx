@@ -1,6 +1,7 @@
 import * as React from "react";
 import {AuthenticationData, Image as ImageData} from "./domain";
 import {ImageLoader} from "./ImageLoader";
+import closeSvg from "./assets/close.svg";
 
 interface ImageEditorProps {
     image: ImageData;
@@ -45,7 +46,7 @@ class ImageEditor extends React.Component<ImageEditorProps, ImageEditorState> {
             <div className="image">
                 <div className="wrapper">
                     <ImageLoader site={this.props.site} userData={this.props.userData} image={this.props.image} />
-                    <img className="close" src="img/close.svg" alt="Slett bilde" width="20" height="20" onClick={this.handleRemove} />
+                    <img className="close" src={closeSvg} alt="Slett bilde" width="20" height="20" onClick={this.handleRemove} />
                 </div>
 
                 <textarea value={this.state.caption} onChange={this.handleCaptionChange}
