@@ -46,13 +46,22 @@ public class AuthenticationService {
             byte[] hash = digest.digest(loginData.password().getBytes(StandardCharsets.UTF_8));
 
             // Verify password and get user data
-            try (PreparedStatement ps = con.prepareStatement("select id, name from users where email=? and hash=? and active=true")) {
+            try (PreparedStatement ps = con.prepareStatement("select id, name from users where email=? and hash=?")) {
                 ps.setString(1, loginData.email());
                 ps.setBytes(2, hash);
 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        auth = createSession(con, rs.getInt("id"), loginData.email(), rs.getString("name"));
+                        int userId = rs.getInt("id");
+
+                        // Check if user has permissions for any sites
+                        List<SitePermission> permissions = getSitePermissionsForUser(con, userId);
+                        if (permissions.isEmpty()) {
+                            log.warn("Login for user {} failed: no site permissions", loginData.email());
+                            throw new AuthenticationException(AuthenticationException.Reason.PASSWORD_MISMATCH);
+                        }
+
+                        auth = createSession(con, userId, loginData.email(), rs.getString("name"));
                     } else {
                         log.warn("Login for user {} failed", loginData.email());
                         throw new AuthenticationException(AuthenticationException.Reason.PASSWORD_MISMATCH);
@@ -104,7 +113,16 @@ public class AuthenticationService {
 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return createSession(con, rs.getInt("id"), email, rs.getString("name"));
+                        int userId = rs.getInt("id");
+
+                        // Check if user has permissions for any sites
+                        List<SitePermission> permissions = getSitePermissionsForUser(con, userId);
+                        if (permissions.isEmpty()) {
+                            log.warn("OIDC login for user {} failed: no site permissions", email);
+                            throw new AuthenticationException(AuthenticationException.Reason.OAUTH_NOT_REGISTERED, email);
+                        }
+
+                        return createSession(con, userId, email, rs.getString("name"));
                     } else {
                         log.warn("OIDC user {} not in database", email);
                         throw new AuthenticationException(AuthenticationException.Reason.OAUTH_NOT_REGISTERED, email);
