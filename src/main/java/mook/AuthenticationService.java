@@ -135,14 +135,14 @@ public class AuthenticationService {
     }
 
     private AuthenticationData createSession(Connection con, int userId, String email, String name) throws SQLException {
-        String uuid = UUID.randomUUID().toString();
+        UUID uuid = UUID.randomUUID();
 
         try (PreparedStatement ps = con.prepareStatement("insert into userSession (uuid, userId, expires) values(?, ?, ?)")) {
             long expiresSeconds = ZonedDateTime.now().plus(1, ChronoUnit.WEEKS).toEpochSecond();
 
-            ps.setString(1, uuid);
+            ps.setObject(1, uuid);
             ps.setInt(2, userId);
-            ps.setDate(3, new Date(expiresSeconds * 1000));
+            ps.setTimestamp(3, new Timestamp(expiresSeconds * 1000));
 
             ps.executeUpdate();
         }
@@ -154,7 +154,7 @@ public class AuthenticationService {
         try (Connection conn = dataSource.getConnection()) {
             String query = "select count(*) from userSession where uuid=? and expires > CURRENT_TIMESTAMP";
             try (PreparedStatement ps = conn.prepareStatement(query)) {
-                ps.setString(1, token);
+                ps.setObject(1, UUID.fromString(token));
                 try (ResultSet rs = ps.executeQuery()) {
                     rs.next();
                     int count = rs.getInt(1);
@@ -167,13 +167,14 @@ public class AuthenticationService {
     }
 
     public AuthenticationData getAuthenticationData(String token) {
+        UUID uuid = UUID.fromString(token);
         try (Connection conn = dataSource.getConnection()) {
                 // Get user data
                 String query = "select u.id, u.email, u.name " +
                         "from users u, userSession us " +
                         "where us.expires > CURRENT_TIMESTAMP and us.uuid=? and us.userId=u.id;";
                 try (PreparedStatement ps = conn.prepareStatement(query)) {
-                    ps.setString(1, token);
+                    ps.setObject(1, uuid);
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             int userId = rs.getInt("id");
@@ -183,7 +184,7 @@ public class AuthenticationService {
                             // Get permissions for this user
                             List<SitePermission> permissions = getSitePermissionsForUser(conn, userId);
 
-                            return new AuthenticationData(userId, email, name, token, permissions);
+                            return new AuthenticationData(userId, email, name, uuid, permissions);
                         } else {
                             throw new AuthenticationException(AuthenticationException.Reason.SESSION_EXPIRED);
                         }

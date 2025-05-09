@@ -1,32 +1,47 @@
-
 CREATE TABLE users (
-    id int AUTO_INCREMENT PRIMARY KEY,
-    name varchar(40) NOT NULL,
-    email varchar(191) NOT NULL,
-    hash binary(64),
-    UNIQUE (email)
+                       id SERIAL PRIMARY KEY,
+                       name varchar(40) NOT NULL,
+                       email varchar(191) NOT NULL,
+                       hash bytea,
+                       UNIQUE (email)
+);
+
+CREATE TABLE sites (
+                       id SERIAL PRIMARY KEY,
+                       name varchar(80) NOT NULL,
+                       slug varchar(40) NOT NULL,
+                       UNIQUE (slug)
 );
 
 CREATE TABLE entry (
-    id int AUTO_INCREMENT PRIMARY KEY,
-    entryDate date NOT NULL,
-    entryText text NOT NULL,
-    userId int NOT NULL,
-    CONSTRAINT FK_Entry_User FOREIGN KEY (userId) REFERENCES users (id)
+                       id SERIAL PRIMARY KEY,
+                       entryDate date NOT NULL,
+                       entryText text NOT NULL,
+                       userId int NOT NULL REFERENCES users(id),
+                       siteId int NOT NULL REFERENCES sites (id)
 );
 
 CREATE TABLE image (
-    id int AUTO_INCREMENT PRIMARY KEY,
-    entryId int,
-    userId int NOT NULL,
-    mimeType varchar(40) NOT NULL,
-    caption text,
-    CONSTRAINT FK_Image_User FOREIGN KEY (userId) REFERENCES users (id)
+                       id SERIAL PRIMARY KEY,
+                       entryId int,
+                       userId int NOT NULL REFERENCES users (id),
+                       mimeType varchar(40) NOT NULL,
+                       caption text,
+                       siteId int NOT NULL REFERENCES sites (id)
 );
 
 CREATE TABLE userSession (
-    uuid varchar(40) NOT NULL PRIMARY KEY,
-    userId int NOT NULL,
-    expires datetime NOT NULL,
-    CONSTRAINT FK_Session_User FOREIGN KEY (userId) REFERENCES users (id)
+                             uuid UUID NOT NULL PRIMARY KEY,
+                             userId int NOT NULL REFERENCES users (id),
+                             expires timestamp NOT NULL
 );
+
+
+CREATE TYPE permission AS ENUM ('admin', 'edit');
+CREATE TABLE permissions (
+                             siteId int NOT NULL REFERENCES sites (id),
+                             userId int NOT NULL REFERENCES users (id),
+                             permission permission,
+                             UNIQUE (siteId, userId)
+);
+
