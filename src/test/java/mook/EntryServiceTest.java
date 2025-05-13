@@ -32,7 +32,7 @@ public class EntryServiceTest {
 
     @Test
     public void saveEntry() {
-        TestDatabase.insert(ds, "insert into image (userId, mimeType) values (?, ?)", 1, "image/test");
+        TestDatabase.insert(ds, "insert into image (userId, siteId, mimeType) values (?, ?, ?)", 1, 1, "image/test");
 
         int id = service.saveEntry("Entry", new Date(), Collections.singletonList(new Image(1, null, "Test")), 1, 1);
 
