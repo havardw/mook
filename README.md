@@ -9,9 +9,8 @@ Configuration for database (Postgresql), file storage and OAuth need to be set f
 See [Quarkus config documentation](https://quarkus.io/guides/config-reference) for
 alternatives on how to set configuration.
 * Database property `quarkus.datasource.jdbc.url` need to be set, with `quarkus.datasource.username` and `quarkus.datasource.password`
-* Path to image storage must be configured, _either_ a file path for `mook.image.path` _or_ an Azure Blob Storage connect string in `azure.blob.connect` 
+* Type of image storage must be configured with `mook.storage.type`, either `file`, `azure` or `s3` (see implementations of `ImageStorage` for further properties)
 * Google client ID and callback URL must be set in `google.clientId` and `google.targetUrl`
-* Display name and instance prefix may be set with `mook.name` and `mook.prefix`
 
 Example (as .env file):
 ```shell
