@@ -200,28 +200,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Frontend build is now handled by Quinoa -->
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <doCheck>false</doCheck>
-                    <doUpdate>false</doUpdate>
-                    <shortRevisionLength>7</shortRevisionLength> <!-- Same as Github -->
-                </configuration>
-            </plugin>
-
         </plugins>
     </build>
 

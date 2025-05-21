@@ -8,6 +8,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
@@ -27,11 +28,11 @@ public class ConfigController {
 
     @GET
     @Produces("application/javascript")
-    public String config() {
+    public Response config() {
         Map<String, Object> map = new HashMap<>();
         map.put("googleId", googleClientId);
         map.put("googleTargetUrl", googleTargetUrl);
-
+    
         StringWriter stringWriter = new StringWriter();
         JsonFactory factory = new JsonFactory(new ObjectMapper());
         JsonGenerator generator;
@@ -44,7 +45,11 @@ public class ConfigController {
         } catch (IOException e) {
             throw new RuntimeException("IOException with StringWriter should be impossible");
         }
-
-        return result;
+    
+        return Response.ok(result)
+                .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                .header("Pragma", "no-cache")
+                .header("Expires", "0")
+                .build();
     }
 }
