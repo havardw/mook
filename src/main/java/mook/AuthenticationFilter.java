@@ -18,8 +18,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     private final AuthenticationService authService;
-    
-    private final List<String> skipPaths = Arrays.asList("/api/login", "/api/oidc-login", "/api/resumeSession", "/api/config.js");
+
+    private final List<String> skipPaths = Arrays.asList("/api/login", "/api/oidc-login", "/api/resumeSession", "/api/logout", "/api/config.js");
 
     @Inject
     public AuthenticationFilter(AuthenticationService authService) {
@@ -30,7 +30,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext context) {
 
         String path = context.getUriInfo().getPath();
-        
+
         if (!skipPaths.contains(path)) {
             String auth = context.getHeaderString("auth");
             if (auth != null && !auth.isEmpty()) {
@@ -46,7 +46,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             }
         }        
     }
-    
+
     private void sendUnauthorized(ContainerRequestContext context, String reason) {
         // Send as HTML, else Angular will have problems getting status
         context.abortWith(Response.status(Response.Status.UNAUTHORIZED).type(MediaType.TEXT_HTML_TYPE).entity(reason).build());

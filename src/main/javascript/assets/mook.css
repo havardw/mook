@@ -7,10 +7,19 @@ body {
 header {
     background-color: black;
     color: white;
-    display: block; /* For you old farts. */
+    display: flex; /* Changed to flex for layout */
+    align-items: center;
+    padding: 0 1rem;
 }
 
-header > h1, main {
+header > h1 {
+    margin: 0;
+    padding: 0.5rem;
+    flex-grow: 1;
+    text-align: center;
+}
+
+main {
     margin: 0 auto;
     padding: 0.5rem;
     max-width: 50rem;

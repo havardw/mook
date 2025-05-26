@@ -31,7 +31,7 @@ public class LoginController {
             return Response.status(Response.Status.UNAUTHORIZED).entity(fromException(e)).build();
         }
     }
-    
+
     @POST
     @Path("oidc-login")
     @Consumes({MediaType.APPLICATION_JSON})
@@ -44,7 +44,7 @@ public class LoginController {
             return Response.status(Response.Status.UNAUTHORIZED).entity(fromException(e)).build();
         }
     }
-    
+
     @POST
     @Path("resumeSession")
     @Consumes({MediaType.APPLICATION_JSON})
@@ -58,6 +58,15 @@ public class LoginController {
         }
     }
 
+    @POST
+    @Path("logout")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response logout(SessionData data) {
+        authService.logout(data.token());
+        return Response.ok().build();
+    }
+
     private static AuthenticationError fromException(AuthenticationException e) {
         return switch (e.getReason()) {
             case PASSWORD_MISMATCH -> new AuthenticationError(AuthenticationError.PASSWORD_MISMATCH);
@@ -68,4 +77,3 @@ public class LoginController {
         };
     }
 }
-

@@ -233,6 +233,23 @@ public class AuthenticationService {
         return new MookPrincipal(a.id(), a.email(), a.displayName());
     }
 
+    public void logout(String token) {
+        try (Connection conn = dataSource.getConnection()) {
+            String query = "DELETE FROM userSession WHERE uuid=?";
+            try (PreparedStatement ps = conn.prepareStatement(query)) {
+                ps.setObject(1, UUID.fromString(token));
+                int deleted = ps.executeUpdate();
+                if (deleted > 0) {
+                    log.info("User logged out, session deleted");
+                } else {
+                    log.warn("Logout attempted for non-existent session");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error during logout", e);
+        }
+    }
+
     @Scheduled(every = "1h")
     public void cleanExpiredTokens() {
         try (Connection conn = dataSource.getConnection()) {

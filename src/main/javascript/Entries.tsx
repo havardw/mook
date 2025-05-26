@@ -98,6 +98,21 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
         this.load();
     }
 
+    componentDidUpdate(prevProps: EntriesProps) {
+        // If the site has changed, reset state and load new data
+        if (prevProps.site !== this.props.site) {
+            this.setState({
+                entries: [],
+                loading: false,
+                offset: 0,
+                complete: false
+            }, () => {
+                // After state is reset, load new data
+                this.load();
+            });
+        }
+    }
+
     componentWillUnmount() {
         window.removeEventListener('scroll', this.handleScroll);
     };

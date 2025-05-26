@@ -1,11 +1,13 @@
 import * as React from "react";
 import axios, {AxiosError} from "axios";
+import * as ReactDOM from "react-dom";
 
 import Login from "./Login";
 import Entries from "./Entries";
 import {parseQuery} from "./utils";
 import {AuthenticationData } from "./domain";
 import { SiteSelector } from "./SiteSelector";
+import { AppMenu } from "./AppMenu";
 
 const USER_DATA_KEY = "mook.userData";
 
@@ -119,6 +121,44 @@ class MookApp extends React.Component<{}, ApplicationState> {
                     }
                 })
         }
+
+        this.renderAppMenu();
+    }
+
+    componentDidUpdate() {
+        this.renderAppMenu();
+    }
+
+    componentWillUnmount() {
+        // Clean up the app menu
+        const appMenuContainer = document.getElementById("appMenu");
+        if (appMenuContainer) {
+            ReactDOM.unmountComponentAtNode(appMenuContainer);
+        }
+    }
+
+    renderAppMenu() {
+        const { userData, loginState, site } = this.state;
+        const appMenuContainer = document.getElementById("appMenu");
+
+        if (appMenuContainer) {
+            if (loginState === "loggedIn" && userData) {
+                ReactDOM.render(
+                    <AppMenu 
+                        userData={userData}
+                        currentSite={site}
+                        onSiteChange={(site, siteName) => {
+                            this.setState({site});
+                            this.updateSiteName(siteName);
+                        }}
+                        onLogout={this.handleLogout}
+                    />,
+                    appMenuContainer
+                );
+            } else {
+                ReactDOM.unmountComponentAtNode(appMenuContainer);
+            }
+        }
     }
 
     handleLogin = (userData: AuthenticationData, rememberLogin: boolean): void => {
@@ -135,6 +175,19 @@ class MookApp extends React.Component<{}, ApplicationState> {
             this.setState({site: selectedSite.path});
             this.updateSiteName(selectedSite.name);
         }
+    };
+
+    handleLogout = (): void => {
+        // Reset state to unauthorized
+        this.setState({
+            userData: undefined,
+            loginState: "unauthorized",
+            site: undefined,
+            globalError: undefined
+        });
+
+        // Reset the application name
+        this.updateSiteName("Mook");
     };
 
     updateSiteName = (siteName: string): void => {
