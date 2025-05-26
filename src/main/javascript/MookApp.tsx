@@ -90,7 +90,18 @@ class MookApp extends React.Component<{}, ApplicationState> {
     componentDidMount() {
         if (this.state.loginState === "restore") {
             axios.post("api/resumeSession", {token: this.state.userData?.token})
-                .then(response => this.setState({userData: response.data, loginState: "loggedIn"}))
+                .then(response => {
+                    this.setState({userData: response.data, loginState: "loggedIn"});
+                    // Set site to active if we only have exactly one
+                    if (response.data.sitePermissions.length === 1) {
+                        const selectedSite = response.data.sitePermissions[0];
+                        this.setState({site: selectedSite.path});
+                        this.updateSiteName(selectedSite.name);
+                    } else {
+                        // If we have multiple sites, we will show a site selector
+                        this.updateSiteName("Mook");
+                    }
+                })
                 .catch(error =>   {
                     if (error.response && error.response.status === 401) {
                         console.log("Stored session is not valid");
