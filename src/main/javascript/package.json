@@ -1,6 +1,6 @@
 {
   "name": "mook",
-  "version": "0.6.0",
+  "version": "0.6.1-SNAPSHOT",
   "description": "Mook JavaScript build",
   "scripts": {
     "dev": "vite",
