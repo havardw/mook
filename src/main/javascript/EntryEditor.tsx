@@ -99,7 +99,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
         event.preventDefault();
         console.info("Entry ", this.state.entry);
 
-        axios.post("api/entry/" + this.props.site, this.state.entry, { headers: { auth: this.props.userData.token }})
+        axios.post("/api/entry/" + this.props.site, this.state.entry, { headers: { auth: this.props.userData.token }})
             .then((response) => {
                 this.props.onEntryAdded(response.data);
 
@@ -154,7 +154,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
 
         this.setState({entry: entry});
 
-        axios.delete("api/image/" + this.props.site + "/original/" + image.name, { headers: { auth: this.props.userData.token }})
+        axios.delete("/api/image/" + this.props.site + "/original/" + image.name, { headers: { auth: this.props.userData.token }})
             .then(function() {
                 console.info("Deleted image " + image.name);
             })

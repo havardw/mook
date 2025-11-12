@@ -47,7 +47,7 @@ class Login extends React.Component<LoginProps, LoginState> {
 
     handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        axios.post("api/login", { email: this.state.email, password: this.state.password})
+        axios.post("/api/login", { email: this.state.email, password: this.state.password})
             .then(response => this.props.onLogin(response.data, this.state.remember))
             .catch(error => {
                 console.warn("Password login error: " + error.message);

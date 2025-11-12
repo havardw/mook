@@ -120,7 +120,7 @@ class Entries extends React.Component<EntriesProps, EntriesState> {
     load = () => {
         console.info("Loading entries from offset " + this.state.offset);
         this.setState({loading: true});
-        axios.get("api/entry/" + this.props.site + "?limit=" + PAGE_SIZE + "&offset=" + this.state.offset, { headers: { auth: this.props.userData.token }})
+        axios.get("/api/entry/" + this.props.site + "?limit=" + PAGE_SIZE + "&offset=" + this.state.offset, { headers: { auth: this.props.userData.token }})
             .then(response => {
                 if (response.data.length === 0) {
                     this.setState({loading: false, complete: true});

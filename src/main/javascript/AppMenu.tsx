@@ -1,6 +1,7 @@
 import * as React from "react";
 import axios from "axios";
 import { AuthenticationData } from "./domain";
+import {Link} from "wouter";
 
 interface AppMenuProps {
     userData: AuthenticationData;
@@ -45,7 +46,7 @@ export class AppMenu extends React.Component<AppMenuProps, AppMenuState> {
 
     handleLogout = () => {
         // Call the logout API
-        axios.post("api/logout", { token: this.props.userData.token })
+        axios.post("/api/logout", { token: this.props.userData.token })
             .then(() => {
                 // Clear session storage and local storage
                 window.sessionStorage.removeItem("mook.userData");
@@ -136,18 +137,14 @@ export class AppMenu extends React.Component<AppMenuProps, AppMenuState> {
                         <>
                             <div style={{ padding: '12px 16px', fontWeight: 'bold', color: 'black' }}>Bytt side:</div>
                             {userData.sitePermissions.map(site => (
-                                <div
+                                <Link
                                     key={site.path}
                                     style={site.path === currentSite ? currentSiteItemStyles : siteItemStyles}
-                                    onClick={() => {
-                                        if (site.path !== currentSite) {
-                                            this.props.onSiteChange(site.path, site.name);
-                                        }
-                                        this.setState({ isOpen: false });
-                                    }}
+                                    href={"/site/" + site.path}
+                                    onClick={() => this.setState({isOpen: false})}
                                 >
                                     {site.name}
-                                </div>
+                                </Link>
                             ))}
                             <div style={dividerStyles}></div>
                         </>

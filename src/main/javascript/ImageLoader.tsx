@@ -52,7 +52,7 @@ export class ImageLoader extends React.Component<ImageLoaderProps, ImageLoaderSt
             size = 400;
         }
 
-        axios.get("api/image/" + this.props.site + "/resized/" + size + "/" + this.props.image.name, config)
+        axios.get("/api/image/" + this.props.site + "/resized/" + size + "/" + this.props.image.name, config)
             .then(response => this.setState({url: window.URL.createObjectURL(response.data)}))
 
             .catch(error => {

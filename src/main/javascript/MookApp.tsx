@@ -1,6 +1,5 @@
 import * as React from "react";
 import axios, {AxiosError} from "axios";
-import * as ReactDOM from "react-dom";
 
 import Login from "./Login";
 import Entries from "./Entries";
@@ -8,13 +7,16 @@ import {parseQuery} from "./utils";
 import {AuthenticationData } from "./domain";
 import { SiteSelector } from "./SiteSelector";
 import { AppMenu } from "./AppMenu";
+import {Redirect, Route, Switch} from "wouter";
 
 const USER_DATA_KEY = "mook.userData";
 
 export const OAUTH_STATE_KEY = "mook.oauthState";
 
+type LoginState = "restore" | "unauthorized" | "oidc" | "loggedIn" | "resume";
+
 interface ApplicationState {
-    loginState: string;
+    loginState: LoginState;
     userData?: AuthenticationData;
     site?: string;
     globalError?: string;
@@ -38,7 +40,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
             userDataStr = window.localStorage.getItem(USER_DATA_KEY)
         }
 
-        let loginState: string;
+        let loginState: LoginState;
         let userData: AuthenticationData | undefined;
         let oidcAccessToken: string | undefined;
         let rememberOidcLogin = false;
@@ -89,7 +91,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
 
     componentDidMount() {
         if (this.state.loginState === "restore") {
-            axios.post("api/resumeSession", {token: this.state.userData?.token})
+            axios.post("/api/resumeSession", {token: this.state.userData?.token})
                 .then(response => {
                     this.setState({userData: response.data, loginState: "loggedIn"});
                     // Set site to active if we only have exactly one
@@ -113,7 +115,7 @@ class MookApp extends React.Component<{}, ApplicationState> {
                     }
                 });
         } else if (this.state.loginState === "oidc") {
-            axios.post("api/oidc-login", {accessToken: this.state.oidcAccessToken})
+            axios.post("/api/oidc-login", {accessToken: this.state.oidcAccessToken})
                 .then(response => {
                     this.setState({rememberOidcLogin: false, oidcAccessToken: undefined});
                     this.handleLogin(response.data, this.state.rememberOidcLogin);
@@ -132,45 +134,12 @@ class MookApp extends React.Component<{}, ApplicationState> {
                     }
                 })
         }
-
-        this.renderAppMenu();
     }
 
-    componentDidUpdate() {
-        this.renderAppMenu();
-    }
-
-    componentWillUnmount() {
-        // Clean up the app menu
-        const appMenuContainer = document.getElementById("appMenu");
-        if (appMenuContainer) {
-            ReactDOM.unmountComponentAtNode(appMenuContainer);
-        }
-    }
-
-    renderAppMenu() {
-        const { userData, loginState, site } = this.state;
-        const appMenuContainer = document.getElementById("appMenu");
-
-        if (appMenuContainer) {
-            if (loginState === "loggedIn" && userData) {
-                ReactDOM.render(
-                    <AppMenu 
-                        userData={userData}
-                        currentSite={site}
-                        onSiteChange={(site, siteName) => {
-                            this.setState({site});
-                            this.updateSiteName(siteName);
-                        }}
-                        onLogout={this.handleLogout}
-                    />,
-                    appMenuContainer
-                );
-            } else {
-                ReactDOM.unmountComponentAtNode(appMenuContainer);
-            }
-        }
-    }
+    onSiteChange = (site: string, siteName: string): void => {
+        this.setState({site});
+        this.updateSiteName(siteName);
+    };
 
     handleLogin = (userData: AuthenticationData, rememberLogin: boolean): void => {
         if (rememberLogin) {
@@ -222,41 +191,65 @@ class MookApp extends React.Component<{}, ApplicationState> {
         }
     };
 
-    render() {
+    renderContent = (): React.ReactNode => {
+
+
         if (!this.state.supportedBrowser) {
             return (
-                <div>
+                <>
                     <h1>Uffda!</h1>
                     <p>Du bruker en for gammel nettleser, så Mook kommer ikke til å virke.</p>
                     <p>Bruk en annen nettleser, gjerne nyeste versjon
                         av <a href="https://www.mozilla.org/firefox/products/">Firefox</a> eller Google Chrome.</p>
-                </div>
+                </>
             );
         } if (this.state.globalError) {
             return (
-                <div>
+                <>
                     <h1>Beklager</h1>
                     <p>{this.state.globalError}</p>
-                </div>
+                </>
             );
         } else if (this.state.loginState === "unauthorized") {
             return (<Login onLogin={this.handleLogin} oidcError={this.state.oidcError} />);
         } else if (this.state.loginState === "resume" || this.state.loginState === "oidc") {
             return (<em>Vent litt...</em>);
-        } else if (!this.state.site) {
+        } else {
             return (
-                <SiteSelector
-                    sites={this.state.userData!.sitePermissions}
-                    onSelect={(site, siteName) => {
-                        this.setState({site});
-                        this.updateSiteName(siteName);
-                    }}
-                />
-            );
+                <Route>
+                    <Switch>
+                        <Route path="/site">
+                            <SiteSelector
+                                sites={this.state.userData!.sitePermissions}
+                            />
+                        </Route>
+                        <Route path="/site/:slug">
+                            {params => <Entries key={params.slug} userData={this.state.userData!} site={params.slug} onHttpError={this.handleHttpError} />}
+                        </Route>
+                        <Route>
+                            {this.state.userData!.sitePermissions.length === 1 ?
+                                <Redirect to={"/site/" + this.state.userData!.sitePermissions[0].path} replace /> :
+                                <Redirect to={"/site"} replace />
+                            }
+                        </Route>
+                    </Switch>
+                </Route>);
         }
-        else {
-            return (<Entries site={this.state.site!} onHttpError={this.handleHttpError} userData={this.state.userData!} />);
-        }
+    }
+
+    render() {
+        return (
+            <>
+                <header>
+                    <h1 id="applicationName">Mook</h1>
+                    {this.state.userData && <AppMenu userData={this.state.userData} onSiteChange={this.onSiteChange} onLogout={this.handleLogout} />}
+                </header>
+
+                <main>
+                    {this.renderContent()}
+                </main>
+            </>
+        )
 
     }
 }
