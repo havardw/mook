@@ -49,7 +49,7 @@ label {
     padding-right: 1em;
 }
 
-input[type=submit], button {
+button {
     padding: 0.5em 2em;
     font-size: 120%;
 }
@@ -77,10 +77,9 @@ div.loading::before {
 
 .entry-buttons {
     margin-top: 1rem;
-}
-
-.entry-buttons > input[type="submit"] { /* Affects first button only in current layout. */
-    margin-right: 3rem;
+    display: flex;
+    gap: 3rem;
+    justify-content: flex-start;
 }
 
 /* Entries */
@@ -172,11 +171,15 @@ img.upload {
 
 /* Adjustment for typical mobiles. */
 @media (max-width: 600px) {
-    input[type=submit], button {
-        padding: 0.5em;
+    button {
+        padding: 0.5em 18px; /* Leave just enough room for spinner. */
     }
 
-    .entry-buttons > input[type=submit] {
-        margin-right: 1rem;
+    button.loading::before {
+        left: 1px;
+    }
+
+    .entry-buttons  {
+        gap: 1rem;
     }
 }

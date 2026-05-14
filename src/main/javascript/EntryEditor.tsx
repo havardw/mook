@@ -97,6 +97,7 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
     handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         console.info("Form submit");
         event.preventDefault();
+        this.setState({sending: true});
         console.info("Entry ", this.state.entry);
 
         axios.post("/api/entry/" + this.props.site, this.state.entry, { headers: { auth: this.props.userData.token }})
@@ -213,10 +214,10 @@ class EntryEditor extends React.Component<EntryEditorProps, EntryEditorState> {
                        onChange={this.addImages}/>
 
                 <div className="entry-buttons">
-                    <input type="submit" value="Lagre"
+                    <button type="submit"
                             disabled={this.isEmpty() || this.state.sending}
-                            className={this.state.sending ? "sending" : ""} />
-                    <button onClick={showImageSelector}>Legg til bilde</button>
+                            className={this.state.sending ? "loading" : ""}>Lagre</button>
+                    <button onClick={showImageSelector} disabled={this.state.sending}>Legg til bilde</button>
                 </div>
             </form>
         )

@@ -17,7 +17,8 @@ interface LoginState {
     password: string;
     remember: boolean;
     rememberOidc: boolean;
-    passwordError?: string
+    passwordError?: string;
+    sending: boolean;
 }
 
 class Login extends React.Component<LoginProps, LoginState> {
@@ -25,7 +26,7 @@ class Login extends React.Component<LoginProps, LoginState> {
     constructor(props: LoginProps) {
         super(props);
 
-        this.state = {email: "", password: "", remember: true, rememberOidc: false};
+        this.state = {email: "", password: "", remember: true, rememberOidc: false, sending: false};
     }
 
     handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,10 +48,13 @@ class Login extends React.Component<LoginProps, LoginState> {
 
     handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        this.setState({sending: true});
+        this.setState({passwordError: undefined});
         axios.post("/api/login", { email: this.state.email, password: this.state.password})
             .then(response => this.props.onLogin(response.data, this.state.remember))
             .catch(error => {
                 console.warn("Password login error: " + error.message);
+                this.setState({sending: false});
                 if (error.response === undefined) {
                     this.setState({passwordError: "Ingen kontakt med server, sjekk at du er koblet på nett"});
                 } else {
@@ -115,7 +119,7 @@ class Login extends React.Component<LoginProps, LoginState> {
                     <label htmlFor="rememberOidc">Husk innlogging</label>
                 </p>
                 <p>
-                    <button onClick={this.oidcInit}>Logg inn med Google</button>
+                    <button onClick={this.oidcInit} disabled={this.state.sending}>Logg inn med Google</button>
                 </p>
                 {oidcError && <p className="error">{oidcError}</p>}
 
@@ -132,7 +136,7 @@ class Login extends React.Component<LoginProps, LoginState> {
 
                     <div className="error">{this.state.passwordError}</div>
 
-                    <p><input type="submit" value="Logg inn med passord" /></p>
+                    <p><button type="submit" disabled={this.state.sending}className={this.state.sending ? "loading" : ""}>Logg inn med passord</button></p>
                 </form>
             </div>
         )
