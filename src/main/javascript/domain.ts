@@ -1,9 +1,12 @@
 
 export type Permission = 'ADMIN' | 'EDIT';
 
-export interface SitePermission {
+export interface Site {
     name: string;
     path: string;
+}
+
+export interface SitePermission extends Site{
     permission: Permission;
 }
 

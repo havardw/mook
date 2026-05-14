@@ -7,12 +7,6 @@ window.addEventListener("DOMContentLoaded",
     function() {
         console.log("Loading app");
 
-        let appElem = document.getElementById("applicationName");
-        if (appElem != null) {
-            appElem.innerText = "Mook";
-        }
-        document.title = "Mook";
-
         const root = createRoot(document.getElementById("root")!);
         root.render(<MookApp />);
     }, false);

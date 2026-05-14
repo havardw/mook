@@ -1,12 +1,11 @@
 import * as React from "react";
 import axios from "axios";
-import { AuthenticationData } from "./domain";
-import {Link} from "wouter";
+import {AuthenticationData, Site} from "./domain";
 
 interface AppMenuProps {
     userData: AuthenticationData;
     currentSite?: string;
-    onSiteChange: (site: string, siteName: string) => void;
+    onSiteChange: (site: Site) => void;
     onLogout: () => void;
 }
 
@@ -137,14 +136,17 @@ export class AppMenu extends React.Component<AppMenuProps, AppMenuState> {
                         <>
                             <div style={{ padding: '12px 16px', fontWeight: 'bold', color: 'black' }}>Bytt side:</div>
                             {userData.sitePermissions.map(site => (
-                                <Link
+                                <a
                                     key={site.path}
                                     style={site.path === currentSite ? currentSiteItemStyles : siteItemStyles}
-                                    href={"/site/" + site.path}
-                                    onClick={() => this.setState({isOpen: false})}
+                                    onClick={() => {
+                                            this.setState({isOpen: false});
+                                            this.props.onSiteChange(site);
+                                        }
+                                    }
                                 >
                                     {site.name}
-                                </Link>
+                                </a>
                             ))}
                             <div style={dividerStyles}></div>
                         </>

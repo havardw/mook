@@ -1,7 +1,7 @@
 import * as React from "react";
 import axios from "axios";
 import {randomString} from "./utils";
-import {OAUTH_STATE_KEY} from "./MookApp";
+import {AFTER_OAUTH_PATH, OAUTH_STATE_KEY} from "./MookApp";
 import {AuthenticationData} from "./domain";
 
 interface LoginProps {
@@ -74,7 +74,9 @@ class Login extends React.Component<LoginProps, LoginState> {
             random += "_remember";
         }
 
+        const after = location.pathname + location.search + location.hash;
         window.sessionStorage.setItem(OAUTH_STATE_KEY, random);
+        window.sessionStorage.setItem(AFTER_OAUTH_PATH, after);
 
         let authUrl = "https://accounts.google.com/o/oauth2/v2/auth?client_id="
             + mookConfig.googleId

@@ -4,197 +4,183 @@ import axios, {AxiosError} from "axios";
 import Login from "./Login";
 import Entries from "./Entries";
 import {parseQuery} from "./utils";
-import {AuthenticationData } from "./domain";
+import {AuthenticationData, Site} from "./domain";
 import { SiteSelector } from "./SiteSelector";
 import { AppMenu } from "./AppMenu";
-import {Redirect, Route, Switch} from "wouter";
+import {Route, Switch, useLocation, useRoute} from "wouter";
+import {useEffect, useState} from "react";
 
 const USER_DATA_KEY = "mook.userData";
 
 export const OAUTH_STATE_KEY = "mook.oauthState";
+export const AFTER_OAUTH_PATH = "mook.oauthTargetPath";
 
-type LoginState = "restore" | "unauthorized" | "oidc" | "loggedIn" | "resume";
+type LoginState = "unauthorized" | "oidc" | "loggedIn" | "resume";
 
-interface ApplicationState {
-    loginState: LoginState;
-    userData?: AuthenticationData;
-    site?: string;
-    globalError?: string;
-    supportedBrowser: boolean;
-    rememberOidcLogin: boolean;
-    oidcAccessToken?: string;
-    oidcError?: { code: string; email: string };
+interface OidcError {
+    code: string;
+    email: string;
 }
 
-class MookApp extends React.Component<{}, ApplicationState> {
+// Check for supported browser
+const supportedBrowser = (!!(window.ProgressEvent)) && (!!(window.FormData))  // Checks for XHR 2
+    && (!!window.Promise); // Require native promise support
 
-    constructor(props: {}) {
-        super(props);
+// Check for stored login or OIDC in progress when app loads
+let initialState: LoginState = "unauthorized";
+let resumeToken: string | undefined;
+let oidcAccessToken: string | undefined;
+let storeLogin = false;
 
-        // Check for supported browser
-        let supportedBrowser = (!!(window.ProgressEvent)) && (!!(window.FormData))  // Checks for XHR 2
-                               && (!!window.Promise); // Require native promise support
+let userDataStr = window.sessionStorage.getItem(USER_DATA_KEY);
+if (userDataStr === null) {
+    userDataStr = window.localStorage.getItem(USER_DATA_KEY);
+    storeLogin = true;
+}
 
-        let userDataStr = window.sessionStorage.getItem(USER_DATA_KEY);
-        if (userDataStr === null) {
-            userDataStr = window.localStorage.getItem(USER_DATA_KEY)
-        }
+if (userDataStr !== null) {
+    const userData: AuthenticationData = JSON.parse(userDataStr);
+    initialState = "resume"
+    resumeToken = userData.token;
+} else {
+    let fragment = window.location.hash;
+    if (fragment && fragment.length > 1) {
+        let params = parseQuery(fragment.substring(1));
 
-        let loginState: LoginState;
-        let userData: AuthenticationData | undefined;
-        let oidcAccessToken: string | undefined;
-        let rememberOidcLogin = false;
-        if (userDataStr !== null) {
-            loginState = "restore";
-            userData = JSON.parse(userDataStr);
-        } else {
-            let fragment = window.location.hash;
-            if (fragment && fragment.length > 1) {
-                let params = parseQuery(fragment.substring(1));
+        if (params.hasOwnProperty("access_token") && params.hasOwnProperty("state")) {
+            // Change path here to the called path, has the side benefit of removing OAuth data from URL
+            const target = window.sessionStorage.getItem(AFTER_OAUTH_PATH);
+            window.sessionStorage.removeItem(AFTER_OAUTH_PATH);
+            history.pushState(null, "", target);
 
-                if (params.hasOwnProperty("access_token") && params.hasOwnProperty("state")) {
-                    // Remove fragment from URL
-                    history.pushState(null, "", window.location.pathname + window.location.search);
-
-                    let storedState = window.sessionStorage.getItem(OAUTH_STATE_KEY);
-                    window.sessionStorage.removeItem(OAUTH_STATE_KEY);
-                    if (storedState === params["state"]) {
-                        loginState = "oidc";
-                        oidcAccessToken = params["access_token"];
-
-                        // IE11 doesn't support endsWith
-                        let end = params["state"].substring(params["state"].length - 9);
-                        rememberOidcLogin = end === "_remember";
-                    } else {
-                        console.log("OICD state mismatch. Stored: '" + storedState + "', received: '" + params["state"] + "'");
-                        loginState = "unauthorized";
-                    }
-                } else {
-                    loginState = "unauthorized";
-                }
+            let storedState = window.sessionStorage.getItem(OAUTH_STATE_KEY);
+            window.sessionStorage.removeItem(OAUTH_STATE_KEY);
+            if (storedState === params["state"]) {
+                initialState = "oidc"
+                oidcAccessToken = params["access_token"];
+                storeLogin = params["state"].endsWith("_remember");
             } else {
-                loginState = "unauthorized";
+                console.warn("OICD state mismatch. Stored: '" + storedState + "', received: '" + params["state"] + "'");
             }
         }
+    }
+}
 
+function MookApp() {
 
-        this.state = {
-            userData: userData,
-            loginState: loginState,
-            globalError: undefined,
-            oidcError: undefined,
-            supportedBrowser: supportedBrowser,
-            oidcAccessToken: oidcAccessToken,
-            rememberOidcLogin: rememberOidcLogin
-        };
+    // State
+    const [userData, setUserData] = useState<AuthenticationData | undefined>();
+    const [loginState, setLoginState] = useState<LoginState>(initialState);
+    const [site, setSite] = useState<Site | undefined>();
+    const [globalError, setGlobalError] = useState<string | undefined>();
+    const [oidcError, setOidcError] = useState<OidcError | undefined>();
+    const [location, setLocation] = useLocation();
+    const [siteMatch, siteParams] = useRoute("/site/:path");
+
+    if (loginState === "resume") {
+        axios.post("/api/resumeSession", {token: resumeToken})
+            .then(response => {
+                console.info("Session restored");
+                setUserData(response.data);
+                setLoginState("loggedIn");
+                handleLogin(response.data, storeLogin);
+            })
+            .catch(error =>   {
+                if (error.response && error.response.status === 401) {
+                    console.info("Stored session is not valid");
+                    window.sessionStorage.removeItem(USER_DATA_KEY);
+                    window.localStorage.removeItem(USER_DATA_KEY);
+                    setGlobalError(undefined);
+                    setLoginState("unauthorized");
+                } else {
+                    handleHttpError(error);
+                }
+            });
+    } else if (loginState === "oidc") {
+        axios.post("/api/oidc-login", {accessToken: oidcAccessToken})
+            .then(response => {
+                handleLogin(response.data, storeLogin);
+            })
+            .catch(error => {
+                if (error.response && error.response.status === 401) {
+                    setGlobalError(undefined);
+                    setLoginState("unauthorized");
+                    setOidcError({
+                        code: error.response.data.errorCode,
+                        email: error.response.data.email
+                    });
+                } else {
+                    handleHttpError(error);
+                }
+            })
     }
 
-    componentDidMount() {
-        if (this.state.loginState === "restore") {
-            axios.post("/api/resumeSession", {token: this.state.userData?.token})
-                .then(response => {
-                    this.setState({userData: response.data, loginState: "loggedIn"});
-                    // Set site to active if we only have exactly one
-                    if (response.data.sitePermissions.length === 1) {
-                        const selectedSite = response.data.sitePermissions[0];
-                        this.setState({site: selectedSite.path});
-                        this.updateSiteName(selectedSite.name);
-                    } else {
-                        // If we have multiple sites, we will show a site selector
-                        this.updateSiteName("Mook");
-                    }
-                })
-                .catch(error =>   {
-                    if (error.response && error.response.status === 401) {
-                        console.log("Stored session is not valid");
-                        window.sessionStorage.removeItem(USER_DATA_KEY);
-                        window.localStorage.removeItem(USER_DATA_KEY);
-                        this.setState({globalError: undefined, loginState: "unauthorized"});
-                    } else {
-                        this.handleHttpError(error);
-                    }
-                });
-        } else if (this.state.loginState === "oidc") {
-            axios.post("/api/oidc-login", {accessToken: this.state.oidcAccessToken})
-                .then(response => {
-                    this.setState({rememberOidcLogin: false, oidcAccessToken: undefined});
-                    this.handleLogin(response.data, this.state.rememberOidcLogin);
-                })
-                .catch(error => {
-                    if (error.response && error.response.status === 401) {
-                        this.setState({globalError: undefined,
-                            loginState: "unauthorized",
-                            oidcError: {
-                                code: error.response.data.errorCode,
-                                email: error.response.data.email
-                            }
-                        });
-                    } else {
-                        this.handleHttpError(error);
-                    }
-                })
-        }
-    }
 
-    onSiteChange = (site: string, siteName: string): void => {
-        this.setState({site});
-        this.updateSiteName(siteName);
+    const onSiteChange = (site: Site): void => {
+        setGlobalError(undefined);
+        setSite(site);
+        setLocation("/site/" + site.path);
     };
 
-    handleLogin = (userData: AuthenticationData, rememberLogin: boolean): void => {
+    const handleLogin = (userData: AuthenticationData, rememberLogin: boolean): void => {
         if (rememberLogin) {
             window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
         } else {
             window.sessionStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
         }
+        setUserData(userData);
+        setLoginState("loggedIn");
 
-        this.setState({userData: userData, loginState: "loggedIn"});
-        // Set site to active if we only have exactly one
-        if (userData.sitePermissions.length === 1) {
-            const selectedSite = userData.sitePermissions[0];
-            this.setState({site: selectedSite.path});
-            this.updateSiteName(selectedSite.name);
-        }
-    };
-
-    handleLogout = (): void => {
-        // Reset state to unauthorized
-        this.setState({
-            userData: undefined,
-            loginState: "unauthorized",
-            site: undefined,
-            globalError: undefined
-        });
-
-        // Reset the application name
-        this.updateSiteName("Mook");
-    };
-
-    updateSiteName = (siteName: string): void => {
-        let appElem = document.getElementById("applicationName");
-        if (appElem != null) {
-            appElem.innerText = siteName;
-        }
-        document.title = siteName;
-    };
-
-    handleHttpError = (error: AxiosError): void => {
-        if (error.response === undefined) {
-            this.setState({globalError: "Ingen nettverkskobling"});
-        } else {
-            if (error.response.status === 401) {
-                this.setState({globalError: undefined, userData: undefined, loginState: "unauthorized"});
+        // If direct access to a site, check if user has access
+        if (siteMatch) {
+            const matched = userData.sitePermissions.find(sp => sp.path === siteParams.path);
+            if (!matched) {
+                console.warn("Site '" + siteParams.path + "' not accessible for user");
+                setGlobalError("Enten så finnes ikke siden, eller så har du ikke tilgang.");
+                return;
             } else {
-                console.warn("Unhandled error: " + error.message);
-                this.setState({globalError: "Ukjent feil"});
+                setSite(matched);
+            }
+        }
+
+        // Redirect to single site or selector
+        if (location === "/") {
+            if (userData!.sitePermissions.length === 1) {
+                const selectedSite = userData.sitePermissions[0];
+                setSite(selectedSite);
+                setLocation("/site/" + selectedSite.path, { replace: true });
+            } else {
+                setLocation("/site", { replace: true });
             }
         }
     };
 
-    renderContent = (): React.ReactNode => {
+    const handleLogout = (): void => {
+        // Reset state to unauthorized
+        setUserData(undefined);
+        setLoginState("unauthorized");
+        setSite(undefined);
+        setGlobalError(undefined);
+        setLocation("/");
+    };
 
+    const handleHttpError = (error: AxiosError): void => {
+        if (error.response === undefined) {
+            setGlobalError("Ingen nettverkskobling");
+        } else {
+            if (error.response.status === 401) {
+                setGlobalError(undefined);
+                setUserData(undefined);
+                setLoginState("unauthorized");
+            } else {
+                console.warn("Unhandled error: " + error.message);
+                setGlobalError("Ukjent feil");
+            }
+        }
+    };
 
-        if (!this.state.supportedBrowser) {
+    const renderContent = (): React.ReactNode => {
+        if (!supportedBrowser) {
             return (
                 <>
                     <h1>Uffda!</h1>
@@ -203,16 +189,16 @@ class MookApp extends React.Component<{}, ApplicationState> {
                         av <a href="https://www.mozilla.org/firefox/products/">Firefox</a> eller Google Chrome.</p>
                 </>
             );
-        } if (this.state.globalError) {
+        } if (globalError) {
             return (
                 <>
                     <h1>Beklager</h1>
-                    <p>{this.state.globalError}</p>
+                    <p>{globalError}</p>
                 </>
             );
-        } else if (this.state.loginState === "unauthorized") {
-            return (<Login onLogin={this.handleLogin} oidcError={this.state.oidcError} />);
-        } else if (this.state.loginState === "resume" || this.state.loginState === "oidc") {
+        } else if (loginState === "unauthorized") {
+            return (<Login onLogin={handleLogin} oidcError={oidcError} />);
+        } else if (loginState === "resume" || loginState === "oidc") {
             return (<em>Vent litt...</em>);
         } else {
             return (
@@ -220,38 +206,40 @@ class MookApp extends React.Component<{}, ApplicationState> {
                     <Switch>
                         <Route path="/site">
                             <SiteSelector
-                                sites={this.state.userData!.sitePermissions}
+                                sites={userData!.sitePermissions}
+                                onSiteChange={onSiteChange}
                             />
                         </Route>
                         <Route path="/site/:slug">
-                            {params => <Entries key={params.slug} userData={this.state.userData!} site={params.slug} onHttpError={this.handleHttpError} />}
+                            {params => <Entries key={params.slug} userData={userData!} site={params.slug} onHttpError={handleHttpError} />}
                         </Route>
                         <Route>
-                            {this.state.userData!.sitePermissions.length === 1 ?
-                                <Redirect to={"/site/" + this.state.userData!.sitePermissions[0].path} replace /> :
-                                <Redirect to={"/site"} replace />
-                            }
+                            <>
+                                <h1>Beklager</h1>
+                                <p>Siden finnes ikke.</p>
+                            </>
                         </Route>
                     </Switch>
                 </Route>);
         }
     }
 
-    render() {
-        return (
-            <>
-                <header>
-                    <h1 id="applicationName">Mook</h1>
-                    {this.state.userData && <AppMenu userData={this.state.userData} onSiteChange={this.onSiteChange} onLogout={this.handleLogout} />}
-                </header>
+    useEffect(() => {
+        document.title = site?.name ?? "Mook";
+    }, [site])
 
-                <main>
-                    {this.renderContent()}
-                </main>
-            </>
-        )
+    return (
+        <>
+            <header>
+                <h1 >{site?.name ?? "Mook"}</h1>
+                {userData && <AppMenu userData={userData} onSiteChange={onSiteChange} onLogout={handleLogout} />}
+            </header>
 
-    }
+            <main>
+                {renderContent()}
+            </main>
+        </>
+    )
 }
 
 export default MookApp;

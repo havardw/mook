@@ -1,13 +1,12 @@
-import {SitePermission} from "./domain";
+import {Site, SitePermission} from "./domain";
 import * as React from "react";
-import {useLocation} from "wouter";
 
 interface SiteSelectorProps {
     sites: SitePermission[];
+    onSiteChange: (site: Site) => void;
 }
 
-export const SiteSelector: React.FC<SiteSelectorProps> = ({sites}) => {
-    const [, navigate] = useLocation();
+export const SiteSelector: React.FC<SiteSelectorProps> = ({sites, onSiteChange}) => {
 
     const SelectorWrapper = {
         display: 'flex',
@@ -24,7 +23,7 @@ export const SiteSelector: React.FC<SiteSelectorProps> = ({sites}) => {
             {sites.map(site => (
                 <button
                     key={site.path}
-                    onClick={() => navigate(`/site/${site.path}`)}
+                    onClick={() => onSiteChange(site)}
                 >
                     {site.name}
                 </button>
